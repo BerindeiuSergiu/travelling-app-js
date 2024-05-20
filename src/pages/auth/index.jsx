@@ -47,7 +47,7 @@ export const Auth = () => {
                 {error && <p style={{color: 'red'}}>{error}</p>}
                 <div>
                     <button className="login-with-email-and-password" type="submit">
-                        Sign in with email
+                        Log in
                     </button>
                     <button type="button" onClick={goToSignUp}>
                         Sign Up
