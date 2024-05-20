@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth, EmailAuthProvider } from "firebase/auth";
+import { getAuth, EmailAuthProvider, deleteUser } from "firebase/auth"; // Import deleteUser function
 import { getFirestore } from "firebase/firestore";
 
 // https://firebase.google.com/docs/web/setup#available-libraries
