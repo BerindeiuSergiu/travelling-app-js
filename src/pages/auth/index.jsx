@@ -20,7 +20,7 @@ export const Auth = () => {
             const q = query(userRef, where("email", "==", email));
             const querySnapshot = await getDocs(q);
 
-            if (email === 'admin@admin.com' && password === 'adminadmin') {
+            if (email === 'admin@admin.com') {
                 navigate('/admin'); // Redirect admin to admin page
             } else {
                 querySnapshot.forEach((doc) => {
