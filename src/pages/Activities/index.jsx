@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { db } from "../../config/firebase-config";
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
-import "./Activities.css"
+import "./Activities.css";
 
 const mapContainerStyle = {
     width: '100%',
     height: '400px',
 };
 
-const center = {
+const defaultCenter = {
     lat: -3.745,
     lng: -38.523
 };
@@ -36,6 +36,7 @@ export const Activities = () => {
     const [cities, setCities] = useState([]);
     const [selectedCountry, setSelectedCountry] = useState('');
     const [selectedCity, setSelectedCity] = useState('');
+    const [mapCenter, setMapCenter] = useState(defaultCenter);
 
     const [newCountry, setNewCountry] = useState('');
     const [newCity, setNewCity] = useState('');
@@ -321,7 +322,7 @@ export const Activities = () => {
                     <LoadScript googleMapsApiKey="AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y">
                         <GoogleMap
                             mapContainerStyle={mapContainerStyle}
-                            center={markerPosition || center}
+                            center={mapCenter}
                             zoom={10}
                             onClick={handleMapClick}
                         >
