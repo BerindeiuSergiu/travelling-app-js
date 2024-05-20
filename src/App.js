@@ -9,16 +9,22 @@ import { Activities } from "./pages/Activities"
 function App() {
     return (
         <div className="App">
-            <div className="background-slide blur"></div>
-            <div className="background-slide blur"></div>
-            <div className="background-slide blur"></div>
-            <div className="background-slide blur"></div>
-            <div className="background-slide blur"></div>
-            <div className="background-slide blur"></div>
             <Router>
                 <div className="content">
                     <Routes>
-                        <Route path="/" exact element={<Auth />} />
+                        <Route path="/" element={
+                            <>
+                                <div className="background-slide blur"></div>
+                                <div className="background-slide blur"></div>
+                                <div className="background-slide blur"></div>
+                                <div className="background-slide blur"></div>
+                                <div className="background-slide blur"></div>
+                                <div className="background-slide blur"></div>
+                                <div className="content">
+                                    <Auth />
+                                </div>
+                            </>
+                        } />
                         <Route path="/travel-application" element={<TravelApp />} />
                         <Route path="/sign-up" element={<SignUp />} />
                         <Route path="/admin" element={<Admin />} />

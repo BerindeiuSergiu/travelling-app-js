@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from "../../config/firebase-config";
 import { collection, getDocs, where, query, updateDoc, doc } from "firebase/firestore";
+import "./Admin.css";
 
 export const Admin = () => {
     const [usersWithRights, setUsersWithRights] = useState([]);
@@ -85,7 +86,7 @@ export const Admin = () => {
     }
 
     return (
-        <div>
+        <div className="admin-page">
             <h1>Admin Page</h1>
             <h2>Users with rights:</h2>
             <ul>
