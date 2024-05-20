@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db } from "../../config/firebase-config";
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
-import "./Activities.css";
+import "./Activities.css"
 
 const mapContainerStyle = {
     width: '100%',
@@ -28,11 +28,10 @@ export const Activities = () => {
         cityID: '',
         description: '',
         location: null,
-        name: '',
-        countryName: ''
+        name: ''
     });
 
-    const [markerPosition, setMarkerPosition] = useState(center);
+    const [markerPosition, setMarkerPosition] = useState(null);
     const [countries, setCountries] = useState([]);
     const [cities, setCities] = useState([]);
     const [selectedCountry, setSelectedCountry] = useState('');
@@ -75,11 +74,15 @@ export const Activities = () => {
     };
 
     const handleMapClick = (e) => {
+        const clickedLatLng = {
+            lat: e.latLng.lat(),
+            lng: e.latLng.lng()
+        };
         setFormData({
             ...formData,
-            location: { lat: e.latLng.lat(), lng: e.latLng.lng() }
+            location: clickedLatLng
         });
-        setMarkerPosition({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+        setMarkerPosition(clickedLatLng);
     };
 
     const handleSubmit = async (e) => {
@@ -101,11 +104,6 @@ export const Activities = () => {
             await addDoc(collection(db, "Countries"), { name: newCountry });
             alert("Country added successfully!");
             setNewCountry('');
-
-            // Update countries state after adding a country
-            const countrySnapshot = await getDocs(collection(db, "Countries"));
-            const countryData = countrySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setCountries(countryData);
         } catch (error) {
             console.error("Error adding country: ", error);
         }
@@ -118,109 +116,13 @@ export const Activities = () => {
             alert("City added successfully!");
             setNewCity('');
             setCountryForCity('');
-
-            // Update cities state after adding a city
-            const citySnapshot = await getDocs(collection(db, `Countries/${countryForCity}/Cities`));
-            const cityData = citySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setCities(cityData);
         } catch (error) {
             console.error("Error adding city: ", error);
         }
     };
 
-    const handleModifyCountryName = async (countryId, newName) => {
-        try {
-            const countryRef = doc(db, "Countries", countryId);
-            await updateDoc(countryRef, { name: newName });
-
-            // Update city references
-            const citiesQuery = query(collection(db, "Cities"), where("countryID", "==", countryId));
-            const citiesSnapshot = await getDocs(citiesQuery);
-            citiesSnapshot.forEach(async (doc) => {
-                await updateDoc(doc.ref, { countryName: newName });
-            });
-
-            // Update countries state with modified name
-            setCountries(prevCountries => prevCountries.map(country => {
-                if (country.id === countryId) {
-                    return { ...country, name: newName };
-                }
-                return country;
-            }));
-
-            alert("Country name updated successfully!");
-        } catch (error) {
-            console.error("Error updating country name: ", error);
-        }
-    };
-
-    const handleDeleteCountry = async (countryId) => {
-        if (window.confirm("Are you sure you want to delete this country?")) {
-            try {
-                // Delete the country
-                await deleteDoc(doc(db, "Countries", countryId));
-
-                // Delete the cities associated with this country
-                const citiesQuery = query(collection(db, "Cities"), where("countryID", "==", countryId));
-                const citiesSnapshot = await getDocs(citiesQuery);
-                citiesSnapshot.forEach(async (doc) => {
-                    await deleteDoc(doc.ref);
-                });
-
-                // Update countries state after deleting a country
-                const countrySnapshot = await getDocs(collection(db, "Countries"));
-                const countryData = countrySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setCountries(countryData);
-
-                alert("Country deleted successfully!");
-            } catch (error) {
-                console.error("Error deleting country: ", error);
-            }
-        }
-    };
-
-    const handleModifyCityName = async (cityId, newName) => {
-        try {
-            const cityRef = doc(db, `Countries/${selectedCountry}/Cities`, cityId);
-            await updateDoc(cityRef, { name: newName });
-
-            // Update cities state with modified name
-            setCities(prevCities => prevCities.map(city => {
-                if (city.id === cityId) {
-                    return { ...city, name: newName };
-                }
-                return city;
-            }));
-
-            alert("City name updated successfully!");
-        } catch (error) {
-            console.error("Error updating city name: ", error);
-        }
-    };
-
-
-    const handleDeleteCity = async (cityId) => {
-        if (window.confirm("Are you sure you want to delete this city?")) {
-            try {
-                // Delete the city
-                await deleteDoc(doc(db, `Countries/${selectedCountry}/Cities`, cityId));
-
-                // Update cities state after deleting a city
-                const citiesQuery = query(collection(db, `Countries/${selectedCountry}/Cities`));
-                const citiesSnapshot = await getDocs(citiesQuery);
-                const cityData = citiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setCities(cityData);
-
-                alert("City deleted successfully!");
-            } catch (error) {
-                console.error("Error deleting city: ", error);
-            }
-        }
-    };
-
-
     return (
-        <div className="activities-page" style={{height: '100vh', overflowY: 'auto'}}>
+        <div className="activities-page">
             <h1>Add New Country</h1>
             <form onSubmit={handleAddCountry}>
                 <label>
@@ -327,73 +229,12 @@ export const Activities = () => {
                             zoom={10}
                             onClick={handleMapClick}
                         >
-                            <Marker position={markerPosition}/>
+                            {markerPosition && <Marker position={markerPosition}/>}
                         </GoogleMap>
                     </LoadScript>
                 </div>
                 <button type="submit">Add Activity</button>
             </form>
-
-            <h1>Modify or Delete Country</h1>
-            <div>
-                <label>Select Country:</label>
-                <select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)}>
-                    <option value="">Select a country</option>
-                    {countries.map((country) => (
-                        <option key={country.id} value={country.id}>
-                            {country.name}
-                        </option>
-                    ))}
-                </select>
-                {selectedCountry && (
-                    <div>
-                        <button onClick={() => {
-                            const newName = prompt("Enter new country name:");
-                            if (newName) {
-                                handleModifyCountryName(selectedCountry, newName);
-                            }
-                        }}>Modify Name</button>
-                        <button onClick={() => handleDeleteCountry(selectedCountry)}>Delete</button>
-                    </div>
-                )}
-            </div>
-
-            <h1>Modify or Delete City</h1>
-            <div>
-                <label>Select Country:</label>
-                <select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)}>
-                    <option value="">Select a country</option>
-                    {countries.map((country) => (
-                        <option key={country.id} value={country.id}>
-                            {country.name}
-                        </option>
-                    ))}
-                </select>
-                {selectedCountry && (
-                    <div>
-                        <label>Select City:</label>
-                        <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
-                            <option value="">Select a city</option>
-                            {cities.map((city) => (
-                                <option key={city.id} value={city.id}>
-                                    {city.name}
-                                </option>
-                            ))}
-                        </select>
-                        {selectedCity && (
-                            <div>
-                                <button onClick={() => {
-                                    const newName = prompt("Enter new city name:");
-                                    if (newName) {
-                                        handleModifyCityName(selectedCity, newName);
-                                    }
-                                }}>Modify Name</button>
-                                <button onClick={() => handleDeleteCity(selectedCity)}>Delete</button>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
         </div>
     );
 };
