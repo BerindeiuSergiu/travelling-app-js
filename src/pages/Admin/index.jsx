@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from "../../config/firebase-config";
-import { collection, getDocs, where, query, updateDoc, doc, deleteDoc } from "firebase/firestore";
-import { getAuth, deleteUser } from "firebase/auth";
+import { collection, getDocs, where, query, updateDoc, doc, deleteDoc, getDoc } from "firebase/firestore";
+import { getAuth, deleteUser as deleteAuthUser, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import "./Admin.css";
 
 export const Admin = () => {
@@ -9,8 +9,11 @@ export const Admin = () => {
     const [usersWithoutRights, setUsersWithoutRights] = useState([]);
     const [grantRightsUser, setGrantRightsUser] = useState("");
     const [revokeRightsUser, setRevokeRightsUser] = useState("");
-    const [deleteUser, setDeleteUser] = useState("");
+    const [userToDelete, setUserToDelete] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -45,12 +48,10 @@ export const Admin = () => {
             const userRef = doc(db, "User", grantRightsUser);
             await updateDoc(userRef, { rights: true });
 
-            // Remove the selected user from usersWithoutRights
             setUsersWithoutRights(prevUsers =>
                 prevUsers.filter(user => user.id !== grantRightsUser)
             );
 
-            // Add the selected user to usersWithRights
             const selectedUserData = usersWithoutRights.find(user => user.id === grantRightsUser);
             setUsersWithRights(prevUsers => [...prevUsers, selectedUserData]);
 
@@ -65,12 +66,10 @@ export const Admin = () => {
             const userRef = doc(db, "User", revokeRightsUser);
             await updateDoc(userRef, { rights: false });
 
-            // Remove the selected user from usersWithRights
             setUsersWithRights(prevUsers =>
                 prevUsers.filter(user => user.id !== revokeRightsUser)
             );
 
-            // Add the selected user to usersWithoutRights
             const selectedUserData = usersWithRights.find(user => user.id === revokeRightsUser);
             setUsersWithoutRights(prevUsers => [...prevUsers, selectedUserData]);
 
@@ -80,18 +79,53 @@ export const Admin = () => {
         }
     };
 
+    const reauthenticate = async () => {
+        const credential = EmailAuthProvider.credential(
+            currentUser.email,
+            prompt("Please enter your password to proceed with deletion:")
+        );
+        try {
+            await reauthenticateWithCredential(currentUser, credential);
+        } catch (error) {
+            console.error("Error reauthenticating user:", error);
+            throw error;
+        }
+    };
 
     const handleDeleteUser = async () => {
+        if (!userToDelete) {
+            alert("Please select a user to delete.");
+            return;
+        }
+
+        // Prevent deleting the currently authenticated user
+        if (currentUser?.uid === userToDelete.id) {
+            alert("You cannot delete the currently authenticated user.");
+            return;
+        }
+
         try {
-            // Delete user from Firebase Authentication by UID
-            await deleteUser(getAuth(), deleteUser);
+            await reauthenticate(); // Re-authenticate the current user
+
+            // Get the user data from Firestore
+            const userRef = doc(db, "User", userToDelete.id);
+            const userDoc = await getDoc(userRef);
+
+            if (!userDoc.exists()) {
+                alert("User does not exist.");
+                return;
+            }
+
+            // Delete user from Firebase Authentication
+            const userToDeleteAuth = await getAuth().getUser(userDoc.data().uid);
+            await deleteAuthUser(userToDeleteAuth);
 
             // Delete user from User collection
-            await deleteDoc(doc(db, "User", deleteUser));
+            await deleteDoc(userRef);
 
             // Delete itineraries associated with the user
             const itineraryRef = collection(db, "Itinerary");
-            const itineraryQuery = query(itineraryRef, where("userID", "==", deleteUser));
+            const itineraryQuery = query(itineraryRef, where("userID", "==", userToDelete.id));
             const itinerarySnapshot = await getDocs(itineraryQuery);
             await Promise.all(itinerarySnapshot.docs.map(async (doc) => {
                 await deleteDoc(doc.ref);
@@ -108,14 +142,13 @@ export const Admin = () => {
             }));
 
             // Update state after deletion
-            setUsersWithRights(prevUsers => prevUsers.filter(user => user.id !== deleteUser));
-            setUsersWithoutRights(prevUsers => prevUsers.filter(user => user.id !== deleteUser));
-            setDeleteUser("");
+            setUsersWithRights(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
+            setUsersWithoutRights(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
+            setUserToDelete(null); // Clear selected user after deletion
         } catch (error) {
             console.error("Error deleting user:", error);
         }
     };
-
 
     if (loading) {
         return <p>Loading...</p>;
@@ -155,7 +188,10 @@ export const Admin = () => {
                 Revoke Rights
             </button>
             <h2>Delete user:</h2>
-            <select value={deleteUser} onChange={(event) => setDeleteUser(event.target.value)}>
+            <select value={userToDelete?.id || ""} onChange={(event) => {
+                const selectedUser = usersWithRights.concat(usersWithoutRights).find(user => user.id === event.target.value);
+                setUserToDelete(selectedUser);
+            }}>
                 <option value="">Select a user</option>
                 {usersWithRights.concat(usersWithoutRights).map((user) => (
                     <option key={user.id} value={user.id}>
@@ -163,7 +199,7 @@ export const Admin = () => {
                     </option>
                 ))}
             </select>
-            <button onClick={handleDeleteUser} disabled={!deleteUser}>
+            <button onClick={handleDeleteUser} disabled={!userToDelete}>
                 Delete User
             </button>
         </div>

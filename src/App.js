@@ -4,6 +4,8 @@ import { Auth } from "./pages/auth/index";
 import { TravelApp } from "./pages/travelApp/index";
 import { SignUp } from "./pages/signUp/index";
 import { Admin } from "./pages/Admin/index";
+import { ShowItineraries } from "./pages/travelApp/ShowItineraries/show-itineraries";
+import { CreateItinerary } from "./pages/travelApp/CreateItinerary/create-itinerary";
 import { Activities } from "./pages/Activities/index"
 
 function App() {
@@ -26,6 +28,8 @@ function App() {
                             </>
                         } />
                         <Route path="/travel-application" element={<TravelApp />} />
+                        <Route path="/show-itineraries" element={<ShowItineraries />} />
+                        <Route path="/create-itinerary" element={<CreateItinerary />} />
                         <Route path="/sign-up" element={<SignUp />} />
                         <Route path="/admin" element={<Admin />} />
                         <Route path="/activities" element={<Activities />} />
