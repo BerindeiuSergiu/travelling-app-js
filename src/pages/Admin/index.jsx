@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from "../../config/firebase-config";
 import { collection, getDocs, where, query, updateDoc, doc, deleteDoc } from "firebase/firestore";
-import { getAuth, deleteUser as fdeleteUser } from "firebase/auth";
+import { getAuth, deleteUser } from "firebase/auth";
 import "./Admin.css";
 
 export const Admin = () => {
@@ -80,11 +80,11 @@ export const Admin = () => {
         }
     };
 
-/*
+
     const handleDeleteUser = async () => {
         try {
             // Delete user from Firebase Authentication by UID
-            await fdeleteUser(getAuth(), deleteUser);
+            await deleteUser(getAuth(), deleteUser);
 
             // Delete user from User collection
             await deleteDoc(doc(db, "User", deleteUser));
@@ -115,7 +115,7 @@ export const Admin = () => {
             console.error("Error deleting user:", error);
         }
     };
-*/
+
 
     if (loading) {
         return <p>Loading...</p>;
