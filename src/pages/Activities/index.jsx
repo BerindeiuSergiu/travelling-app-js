@@ -31,7 +31,7 @@ export const Activities = () => {
         name: ''
     });
 
-    const [markerPosition, setMarkerPosition] = useState(center);
+    const [markerPosition, setMarkerPosition] = useState(null);
     const [countries, setCountries] = useState([]);
     const [cities, setCities] = useState([]);
     const [selectedCountry, setSelectedCountry] = useState('');
@@ -74,11 +74,13 @@ export const Activities = () => {
     };
 
     const handleMapClick = (e) => {
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
         setFormData({
             ...formData,
-            location: { lat: e.latLng.lat(), lng: e.latLng.lng() }
+            location: { lat, lng }
         });
-        setMarkerPosition({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+        setMarkerPosition({ lat, lng });
     };
 
     const handleSubmit = async (e) => {
@@ -96,11 +98,6 @@ export const Activities = () => {
 
     const handleAddCountry = async (e) => {
         e.preventDefault();
-        // Check if the country name already exists
-        if (countries.some(country => country.name.toLowerCase() === newCountry.toLowerCase())) {
-            alert("Country name already exists!");
-            return;
-        }
         try {
             await addDoc(collection(db, "Countries"), { name: newCountry });
             alert("Country added successfully!");
@@ -117,11 +114,6 @@ export const Activities = () => {
 
     const handleAddCity = async (e) => {
         e.preventDefault();
-        // Check if the city name already exists in the selected country
-        if (cities.some(city => city.name.toLowerCase() === newCity.toLowerCase())) {
-            alert("City name already exists in this country!");
-            return;
-        }
         try {
             await addDoc(collection(db, `Countries/${countryForCity}/Cities`), { name: newCity });
             alert("City added successfully!");
@@ -329,11 +321,11 @@ export const Activities = () => {
                     <LoadScript googleMapsApiKey="AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y">
                         <GoogleMap
                             mapContainerStyle={mapContainerStyle}
-                            center={center}
+                            center={markerPosition || center}
                             zoom={10}
                             onClick={handleMapClick}
                         >
-                            <Marker position={markerPosition}/>
+                            {markerPosition && <Marker position={markerPosition} />}
                         </GoogleMap>
                     </LoadScript>
                 </div>
@@ -353,8 +345,8 @@ export const Activities = () => {
                 {selectedCountry && (
                     <div>
                         <button onClick={() => {
-                                const newName = prompt("Enter new country name:");
-                                if (newName) {handleModifyCountryName(selectedCountry, newName);}
+                            const newName = prompt("Enter new country name:");
+                            if (newName) {handleModifyCountryName(selectedCountry, newName);}
                         }}>
                             Modify Name
                         </button>
