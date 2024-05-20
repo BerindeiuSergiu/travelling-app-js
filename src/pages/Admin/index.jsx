@@ -187,6 +187,7 @@ export const Admin = () => {
             <button onClick={handleRevokeRights} disabled={!revokeRightsUser}>
                 Revoke Rights
             </button>
+
             <h2>Delete user:</h2>
             <select value={userToDelete?.id || ""} onChange={(event) => {
                 const selectedUser = usersWithRights.concat(usersWithoutRights).find(user => user.id === event.target.value);
