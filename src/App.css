@@ -1,102 +1,102 @@
-.App {
-  text-align: center;
-}
+/*.App {*/
+/*  text-align: center;*/
+/*}*/
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
+/*.App-logo {*/
+/*  height: 40vmin;*/
+/*  pointer-events: none;*/
+/*}*/
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
+/*@media (prefers-reduced-motion: no-preference) {*/
+/*  .App-logo {*/
+/*    animation: App-logo-spin infinite 20s linear;*/
+/*  }*/
+/*}*/
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
+/*.App-header {*/
+/*  background-color: #282c34;*/
+/*  min-height: 100vh;*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*  align-items: center;*/
+/*  justify-content: center;*/
+/*  font-size: calc(10px + 2vmin);*/
+/*  color: white;*/
+/*}*/
 
-.App-link {
-  color: #61dafb;
-}
+/*.App-link {*/
+/*  color: #61dafb;*/
+/*}*/
 
-@keyframes slideShow {
-  0% { opacity: 1; }
-  17% { opacity: 1; }
-  25% { opacity: 0; }
-  92% { opacity: 0; }
-  100% { opacity: 1; }
-}
+/*@keyframes slideShow {*/
+/*  0% { opacity: 1; }*/
+/*  17% { opacity: 1; }*/
+/*  25% { opacity: 0; }*/
+/*  92% { opacity: 0; }*/
+/*  100% { opacity: 1; }*/
+/*}*/
 
-.background-slide {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background-size: cover;
-  background-position: center;
-  animation: slideShow 30s infinite;
-}
+/*.background-slide {*/
+/*  position: fixed;*/
+/*  top: 0;*/
+/*  left: 0;*/
+/*  width: 100%;*/
+/*  height: 100%;*/
+/*  z-index: -1;*/
+/*  background-size: cover;*/
+/*  background-position: center;*/
+/*  animation: slideShow 30s infinite;*/
+/*}*/
 
-.background-slide:nth-child(1) {
-  background-image: url('/public/background/13984.jpg');
-  animation-delay: 0s;
-}
+/*.background-slide:nth-child(1) {*/
+/*  background-image: url('/public/background/13984.jpg');*/
+/*  animation-delay: 0s;*/
+/*}*/
 
-.background-slide:nth-child(2) {
-  background-image: url('/public/background/501447.jpg');
-  animation-delay: 5s;
-}
+/*.background-slide:nth-child(2) {*/
+/*  background-image: url('/public/background/501447.jpg');*/
+/*  animation-delay: 5s;*/
+/*}*/
 
-.background-slide:nth-child(3) {
-  background-image: url('/public/background/cities-paris-building-city-wallpaper-preview.jpg');
-  animation-delay: 10s;
-}
+/*.background-slide:nth-child(3) {*/
+/*  background-image: url('/public/background/cities-paris-building-city-wallpaper-preview.jpg');*/
+/*  animation-delay: 10s;*/
+/*}*/
 
-.background-slide:nth-child(4) {
-  background-image: url('/public/background/city-italy-rome-florence-wallpaper-preview.jpg');
-  animation-delay: 15s;
-}
+/*.background-slide:nth-child(4) {*/
+/*  background-image: url('/public/background/city-italy-rome-florence-wallpaper-preview.jpg');*/
+/*  animation-delay: 15s;*/
+/*}*/
 
-.background-slide:nth-child(5) {
-  background-image: url('/public/background/city-london-london-eye-big-ben-wallpaper-preview.jpg');
-  animation-delay: 20s;
-}
+/*.background-slide:nth-child(5) {*/
+/*  background-image: url('/public/background/city-london-london-eye-big-ben-wallpaper-preview.jpg');*/
+/*  animation-delay: 20s;*/
+/*}*/
 
-.background-slide:nth-child(6) {
-  background-image: url('/public/background/turkey_istanbul_3840x2106.jpg');
-  animation-delay: 25s;
-}
+/*.background-slide:nth-child(6) {*/
+/*  background-image: url('/public/background/turkey_istanbul_3840x2106.jpg');*/
+/*  animation-delay: 25s;*/
+/*}*/
 
-.blur {
-  filter: blur(4px);
-  -webkit-filter: blur(4px);
-}
+/*.blur {*/
+/*  filter: blur(4px);*/
+/*  -webkit-filter: blur(4px);*/
+/*}*/
 
-.App {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
+/*.App {*/
+/*  position: relative;*/
+/*  width: 100%;*/
+/*  height: 100%;*/
+/*  overflow: hidden;*/
+/*}*/
 
-.content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  color: white;
-  text-align: center;
-}
+/*.content {*/
+/*  position: relative;*/
+/*  z-index: 1;*/
+/*  display: flex;*/
+/*  justify-content: center;*/
+/*  align-items: center;*/
+/*  height: 100vh;*/
+/*  color: white;*/
+/*  text-align: center;*/
+/*}*/
