@@ -59,16 +59,6 @@ export const CreateItinerary = () => {
         setTags({ ...tags, [event.target.name]: event.target.checked });
     };
 
-    const fetchLocationDetails = async (lat, lng) => {
-        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
-        const data = await response.json();
-        if (data.results.length > 0) {
-            return data.results[0].formatted_address;
-        } else {
-            return "Location not found";
-        }
-    };
-
     const filteredActivities = activities.filter(activity => {
         return Object.keys(tags).every(tag => !tags[tag] || activity[tag]);
     });
@@ -126,16 +116,25 @@ export const CreateItinerary = () => {
     );
 };
 
-const FetchLocation = ({ lat, lng }) => {
+export const FetchLocation = ({ lat, lng }) => {
     const [location, setLocation] = useState('Fetching location...');
 
     useEffect(() => {
         const fetchLocationDetails = async () => {
-            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
-            const data = await response.json();
-            if (data.results.length > 0) {
-                setLocation(data.results[0].formatted_address);
-            } else {
+            try {
+                const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                if (data.status === "OK" && data.results.length > 0) {
+                    setLocation(data.results[0].formatted_address);
+                } else {
+                    console.error("Geocoding API error:", data);
+                    setLocation("Location not found");
+                }
+            } catch (error) {
+                console.error("Error fetching location details:", error);
                 setLocation("Location not found");
             }
         };

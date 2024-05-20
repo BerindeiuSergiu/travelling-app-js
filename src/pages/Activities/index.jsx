@@ -31,7 +31,7 @@ export const Activities = () => {
         name: ''
     });
 
-    const [markerPosition, setMarkerPosition] = useState(center);
+    const [markerPosition, setMarkerPosition] = useState(null);
     const [countries, setCountries] = useState([]);
     const [cities, setCities] = useState([]);
     const [selectedCountry, setSelectedCountry] = useState('');
@@ -74,11 +74,15 @@ export const Activities = () => {
     };
 
     const handleMapClick = (e) => {
+        const clickedLatLng = {
+            lat: e.latLng.lat(),
+            lng: e.latLng.lng()
+        };
         setFormData({
             ...formData,
-            location: { lat: e.latLng.lat(), lng: e.latLng.lng() }
+            location: clickedLatLng
         });
-        setMarkerPosition({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+        setMarkerPosition(clickedLatLng);
     };
 
     const handleSubmit = async (e) => {
@@ -147,6 +151,7 @@ export const Activities = () => {
                 </label>
                 <button type="submit">Add City</button>
             </form>
+
             <h1>Add New Activity</h1>
             <form onSubmit={handleSubmit}>
                 <label>
@@ -224,14 +229,12 @@ export const Activities = () => {
                             zoom={10}
                             onClick={handleMapClick}
                         >
-                            <Marker position={markerPosition}/>
+                            {markerPosition && <Marker position={markerPosition}/>}
                         </GoogleMap>
                     </LoadScript>
                 </div>
                 <button type="submit">Add Activity</button>
             </form>
-
-
         </div>
     );
 };
