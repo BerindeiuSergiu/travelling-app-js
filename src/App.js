@@ -4,7 +4,7 @@ import { Auth } from "./pages/auth/index";
 import { TravelApp } from "./pages/travelApp/index";
 import { SignUp } from "./pages/signUp/index";
 import { Admin } from "./pages/Admin/index";
-import { Activities } from "./pages/Activities"
+import { Activities } from "./pages/Activities/index"
 
 function App() {
     return (
