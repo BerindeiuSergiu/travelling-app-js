@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import { auth } from "../../config/firebase-config"; // Make sure this path is correct
+import { auth, db } from "../../config/firebase-config"; // Make sure this path is correct
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 export const SignUp = () => {
     const [email, setEmail] = useState('');
@@ -20,6 +21,13 @@ export const SignUp = () => {
         try {
             const result = await createUserWithEmailAndPassword(auth, email, password);
             console.log(result);
+
+            const userRef = doc(db, "User", result.user.uid);
+            await setDoc(userRef, {
+                email: email,
+                rights : false
+            });
+
             navigate('/'); // Navigate to TravelApp on successful sign-up
         } catch (error) {
             setError(error.message);

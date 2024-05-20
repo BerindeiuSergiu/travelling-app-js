@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import { auth } from "../../config/firebase-config";
+import { auth, db } from "../../config/firebase-config";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export const Auth = () => {
     const [email, setEmail] = useState('');
@@ -14,7 +15,25 @@ export const Auth = () => {
         try {
             const result = await signInWithEmailAndPassword(auth, email, password);
             console.log(result);
-            navigate('/travel-application'); // Navigate to TravelApp on successful login
+
+            const userRef = collection(db, "User");
+            const q = query(userRef, where("email", "==", email));
+            const querySnapshot = await getDocs(q);
+
+            if (email === 'admin@admin.com' && password === 'adminadmin') {
+                navigate('/admin'); // Redirect admin to admin page
+            } else {
+                querySnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    console.log("User Data:", userData);
+                    if (userData.rights) {
+                        navigate('/activities'); // Redirect to Activities page if user has rights
+                    } else {
+                        navigate('/travel-application'); // Redirect to Travel Application page
+                    }
+                });
+            }
+
         } catch (error) {
             setError(error.message);
         }
