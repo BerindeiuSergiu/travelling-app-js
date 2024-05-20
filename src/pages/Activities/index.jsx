@@ -96,6 +96,11 @@ export const Activities = () => {
 
     const handleAddCountry = async (e) => {
         e.preventDefault();
+        // Check if the country name already exists
+        if (countries.some(country => country.name.toLowerCase() === newCountry.toLowerCase())) {
+            alert("Country name already exists!");
+            return;
+        }
         try {
             await addDoc(collection(db, "Countries"), { name: newCountry });
             alert("Country added successfully!");
@@ -112,6 +117,11 @@ export const Activities = () => {
 
     const handleAddCity = async (e) => {
         e.preventDefault();
+        // Check if the city name already exists in the selected country
+        if (cities.some(city => city.name.toLowerCase() === newCity.toLowerCase())) {
+            alert("City name already exists in this country!");
+            return;
+        }
         try {
             await addDoc(collection(db, `Countries/${countryForCity}/Cities`), { name: newCity });
             alert("City added successfully!");
