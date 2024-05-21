@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, getAuth } from "../../../config/firebase-config";
-import { collection, getDocs, query, where, addDoc, onSnapshot } from "firebase/firestore";
+import { collection, getDocs, query, where, addDoc, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import "./create.css";
 
@@ -93,8 +93,16 @@ export const CreateItinerary = ({ currentUser }) => {
         if (itineraryId) {
             const fetchCurrentItineraryActivities = () => {
                 const q = query(collection(db, "ActUsr"), where("itineraryId", "==", itineraryId));
-                return onSnapshot(q, (querySnapshot) => {
-                    const currentActivitiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                return onSnapshot(q, async (querySnapshot) => {
+                    const currentActivitiesData = await Promise.all(
+                        querySnapshot.docs.map(async (docSnapshot) => {
+                            const data = docSnapshot.data();
+                            const activityDocRef = doc(db, "Activities", data.activityId);
+                            const activityDoc = await getDoc(activityDocRef);
+                            const activityData = activityDoc.exists() ? activityDoc.data() : {};
+                            return { id: docSnapshot.id, ...data, activityName: activityData.name || "Unknown" };
+                        })
+                    );
                     setCurrentItineraryActivities(currentActivitiesData);
                 }, (error) => {
                     console.error("Error fetching current itinerary activities:", error);
@@ -210,17 +218,34 @@ export const CreateItinerary = ({ currentUser }) => {
                 photo: "" // Placeholder for photo, needs to be updated
             });
 
-            // Update the current itinerary activities
-            setCurrentItineraryActivities([...currentItineraryActivities, { activityId, startTime, stopTime }]);
+            // Update the current itinerary activities in real-time
+            const q = query(collection(db, "ActUsr"), where("itineraryId", "==", itineraryId));
+            const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+                const updatedActivities = await Promise.all(
+                    querySnapshot.docs.map(async (docSnapshot) => {
+                        const data = docSnapshot.data();
+                        const activityDocRef = doc(db, "Activities", data.activityId);
+                        const activityDoc = await getDoc(activityDocRef);
+                        const activityData = activityDoc.exists() ? activityDoc.data() : {};
+                        return { id: docSnapshot.id, ...data, activityName: activityData.name || "Unknown" };
+                    })
+                );
+                setCurrentItineraryActivities(updatedActivities);
+            }, (error) => {
+                console.error("Error fetching current itinerary activities:", error);
+            });
 
             // Reset start and stop times
             setStartTime('');
             setStopTime('');
+
+            // Unsubscribe from real-time updates when component unmounts
+            return () => unsubscribe();
         } catch (error) {
             console.error("Error adding activity to itinerary:", error);
-            // You can add an error message here if needed
+            // You can add an error message or alert here if needed
         }
-    }
+    };
 
     return (
         <div className="create-itinerary" style={{ overflowY: 'scroll', maxHeight: 'calc(100vh - 100px)' }}>
@@ -358,7 +383,7 @@ export const CreateItinerary = ({ currentUser }) => {
                         {currentItineraryActivities.filter(activity => activity.itineraryId === itineraryId).map(activity => (
                             <li key={activity.id}>
                                 <div>
-                                    <p><strong>Activity ID:</strong> {activity.activityId}</p>
+                                    <p><strong>Activity Name:</strong> {activity.activityName}</p>
                                     <p><strong>Start Time:</strong> {activity.startTime}</p>
                                     <p><strong>Stop Time:</strong> {activity.stopTime}</p>
                                 </div>
