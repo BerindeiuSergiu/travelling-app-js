@@ -233,8 +233,11 @@ export const CreateItinerary = ({ currentUser }) => {
                                 {showDetails[activity.id] && (
                                     <div className="activity-details">
                                         <p><strong>Description:</strong> {showDetails[activity.id].description}</p>
-                                        <p><strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}</p>
-                                        <p><strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes</p>
+                                        <p>
+                                            <strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}
+                                        </p>
+                                        <p><strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes
+                                        </p>
                                         <p>
                                             <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
                                         </p>
