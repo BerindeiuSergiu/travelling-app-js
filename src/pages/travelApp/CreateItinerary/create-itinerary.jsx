@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db } from "../../../config/firebase-config";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { db, getAuth } from "../../../config/firebase-config";
+import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import "./create.css";
 
@@ -84,8 +84,45 @@ export const CreateItinerary = ({ currentUser }) => {
         }
     }, [selectedCity, filters]);
 
-    const handleCreateItinerary = () => {
+    const handleCreateItinerary = async () => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        // Check if user is logged in
+        if (!user) {
+            alert("You must be logged in to create an itinerary.");
+            return;
+        }
+
+        // Check if marker position is set
+        if (!markerPosition) {
+            alert("Please select a location on the map.");
+            return;
+        }
+
+        // Set createButtonClicked to true
         setCreateButtonClicked(true);
+
+        try {
+            // Add new itinerary object to the database
+            const docRef = await addDoc(collection(db, "Itinerary"), {
+                name: itineraryName,
+                startLocation: markerPosition,
+                date: itineraryDate,
+                userID: user.uid, // Using current user from authentication
+                completed: false
+            });
+            console.log("Document written with ID: ", docRef.id);
+
+            // Reset form fields after successful creation
+            setItineraryName('');
+            setMarkerPosition(null);
+            setItineraryDate('');
+            // Removed setCreateButtonClicked(false) as it may not be necessary
+        } catch (error) {
+            console.error("Error adding document: ", error);
+            alert("An error occurred while creating the itinerary. Please try again later.");
+        }
     };
 
     const handleMapClick = (e) => {
