@@ -38,16 +38,18 @@ export const ShowItineraries = () => {
 
     const fetchActivitiesForItinerary = useCallback(async (itineraryId) => {
         try {
-            console.log("Fetching activities for itinerary with ID:", itineraryId);
             const actusrRef = collection(db, "ActUsr");
-            const activitiesRef = collection(db, "Activities");
             const q = query(actusrRef, where("itineraryId", "==", itineraryId));
             const activitiesSnapshot = await getDocs(q);
             const activityIds = activitiesSnapshot.docs.map(doc => doc.data().activityId);
-            const q2 = query(activitiesRef, where("activityId", "in", activityIds));
-            const activitiesSnapshot2 = await getDocs(q2);
-            const activitiesData = activitiesSnapshot2.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            console.log("Activities:", activitiesData);
+
+            const activitiesDataPromises = activityIds.map(async (activityId) => {
+                const activityRef = doc(db, "Activities", activityId);
+                const activityDoc = await getDoc(activityRef);
+                return { id: activityId, ...activityDoc.data() };
+            });
+
+            const activitiesData = await Promise.all(activitiesDataPromises);
             setActivities(activitiesData);
         } catch (error) {
             console.error("Error fetching activities for itinerary:", error);
@@ -62,17 +64,14 @@ export const ShowItineraries = () => {
 
     const deleteItinerary = async (itineraryId) => {
         try {
-            // Delete the itinerary document
             await deleteDoc(doc(db, "Itinerary", itineraryId));
 
-            // Delete associated activities from the ActUsr collection
             const activitiesQuery = query(collection(db, "ActUsr"), where("itineraryId", "==", itineraryId));
             const activitiesSnapshot = await getDocs(activitiesQuery);
             activitiesSnapshot.forEach(async (doc) => {
                 await deleteDoc(doc.ref);
             });
 
-            // Update the list of itineraries after deletion
             setItineraries(prevItineraries => prevItineraries.filter(itinerary => itinerary.id !== itineraryId));
         } catch (error) {
             console.error("Error deleting itinerary:", error);
@@ -86,12 +85,10 @@ export const ShowItineraries = () => {
         }
 
         try {
-            // Fetch the activity name based on the selected activity ID
             const activityRef = doc(db, "Activities", selectedActivity);
             const activityDoc = await getDoc(activityRef);
             const activityData = activityDoc.data();
 
-            // Add the selected activity with photo to the ActUsr collection
             await addDoc(collection(db, "ActUsr"), {
                 activityId: selectedActivity,
                 activityName: activityData.name,
@@ -99,7 +96,6 @@ export const ShowItineraries = () => {
                 photo,
             });
 
-            // Reset state after saving changes
             setSelectedItinerary(null);
             setSelectedActivity("");
             setPhoto("");
@@ -113,11 +109,10 @@ export const ShowItineraries = () => {
             setSelectedItinerary(null);
             setSelectedActivity("");
             setPhoto("");
-            setActivities([]); // Clear activities when deselecting itinerary
+            setActivities([]);
         } else {
             setSelectedItinerary(itinerary);
-            // Fetch activities for the selected itinerary
-            await fetchActivitiesForItinerary(itinerary.id); // Await the fetch to ensure data is available
+            await fetchActivitiesForItinerary(itinerary.id);
         }
     };
 
