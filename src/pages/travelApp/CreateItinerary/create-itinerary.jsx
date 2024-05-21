@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, getAuth } from "../../../config/firebase-config";
-import { collection, getDocs, query, where, addDoc, doc, setDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, addDoc, onSnapshot } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import "./create.css";
 
@@ -90,18 +90,21 @@ export const CreateItinerary = ({ currentUser }) => {
     }, [selectedCity, filters]);
 
     useEffect(() => {
-        const fetchCurrentItineraryActivities = async () => {
-            try {
-                const querySnapshot = await getDocs(query(collection(db, "ActUsr"), where("userID", "==", currentUser.uid)));
-                const currentActivitiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setCurrentItineraryActivities(currentActivitiesData);
-            } catch (error) {
-                console.error("Error fetching current itinerary activities:", error);
-            }
-        };
+        if (itineraryId) {
+            const fetchCurrentItineraryActivities = () => {
+                const q = query(collection(db, "ActUsr"), where("itineraryId", "==", itineraryId));
+                return onSnapshot(q, (querySnapshot) => {
+                    const currentActivitiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setCurrentItineraryActivities(currentActivitiesData);
+                }, (error) => {
+                    console.error("Error fetching current itinerary activities:", error);
+                });
+            };
 
-        fetchCurrentItineraryActivities();
-    }, [currentUser]);
+            const unsubscribe = fetchCurrentItineraryActivities();
+            return () => unsubscribe();
+        }
+    }, [itineraryId]);
 
     const handleCreateItinerary = async () => {
         const auth = getAuth();
@@ -148,7 +151,6 @@ export const CreateItinerary = ({ currentUser }) => {
             alert("An error occurred while creating the itinerary. Please try again later.");
         }
     };
-
 
     const handleMapClick = (e) => {
         const lat = e.latLng.lat();
@@ -218,11 +220,10 @@ export const CreateItinerary = ({ currentUser }) => {
             console.error("Error adding activity to itinerary:", error);
             // You can add an error message here if needed
         }
-    };
-
+    }
 
     return (
-        <div className="create-itinerary" style={{overflowY: 'scroll', maxHeight: 'calc(100vh - 100px)'}}>
+        <div className="create-itinerary" style={{ overflowY: 'scroll', maxHeight: 'calc(100vh - 100px)' }}>
             <h1>Create Itinerary</h1>
             <input
                 type="text"
@@ -243,7 +244,7 @@ export const CreateItinerary = ({ currentUser }) => {
                         zoom={10}
                         onClick={handleMapClick}
                     >
-                        {markerPosition && <Marker position={markerPosition}/>}
+                        {markerPosition && <Marker position={markerPosition} />}
                     </GoogleMap>
                 </LoadScript>
             </div>
@@ -275,37 +276,37 @@ export const CreateItinerary = ({ currentUser }) => {
                     <h2>Filters</h2>
                     <label>
                         Casual:
-                        <input type="checkbox" checked={filters.casual} onChange={() => handleFilterChange('casual')}/>
+                        <input type="checkbox" checked={filters.casual} onChange={() => handleFilterChange('casual')} />
                     </label>
                     <label>
                         Cultural:
                         <input type="checkbox" checked={filters.cultural}
-                               onChange={() => handleFilterChange('cultural')}/>
+                               onChange={() => handleFilterChange('cultural')} />
                     </label>
                     <label>
                         Food:
-                        <input type="checkbox" checked={filters.food} onChange={() => handleFilterChange('food')}/>
+                        <input type="checkbox" checked={filters.food} onChange={() => handleFilterChange('food')} />
                     </label>
                     <label>
                         Free:
-                        <input type="checkbox" checked={filters.free} onChange={() => handleFilterChange('free')}/>
+                        <input type="checkbox" checked={filters.free} onChange={() => handleFilterChange('free')} />
                     </label>
                     <label>
                         Must:
-                        <input type="checkbox" checked={filters.must} onChange={() => handleFilterChange('must')}/>
+                        <input type="checkbox" checked={filters.must} onChange={() => handleFilterChange('must')} />
                     </label>
                     <label>
                         Nature:
-                        <input type="checkbox" checked={filters.nature} onChange={() => handleFilterChange('nature')}/>
+                        <input type="checkbox" checked={filters.nature} onChange={() => handleFilterChange('nature')} />
                     </label>
                     <label>
                         Night:
-                        <input type="checkbox" checked={filters.night} onChange={() => handleFilterChange('night')}/>
+                        <input type="checkbox" checked={filters.night} onChange={() => handleFilterChange('night')} />
                     </label>
                     <label>
                         Seasonal:
                         <input type="checkbox" checked={filters.seasonal}
-                               onChange={() => handleFilterChange('seasonal')}/>
+                               onChange={() => handleFilterChange('seasonal')} />
                     </label>
                 </div>
             )}
@@ -332,18 +333,34 @@ export const CreateItinerary = ({ currentUser }) => {
                                         <div>
                                             <label>Start Time:</label>
                                             <input type="time" value={startTime}
-                                                   onChange={(e) => setStartTime(e.target.value)}/>
+                                                   onChange={(e) => setStartTime(e.target.value)} />
                                         </div>
                                         <div>
                                             <label>Stop Time:</label>
                                             <input type="time" value={stopTime}
-                                                   onChange={(e) => setStopTime(e.target.value)}/>
+                                                   onChange={(e) => setStopTime(e.target.value)} />
                                         </div>
                                         <button
                                             onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add to Itinerary
                                         </button>
                                     </div>
                                 )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+            {itineraryId && (
+                <div className="current-activities">
+                    <h2>Current Itinerary Activities</h2>
+                    <ul>
+                        {currentItineraryActivities.filter(activity => activity.itineraryId === itineraryId).map(activity => (
+                            <li key={activity.id}>
+                                <div>
+                                    <p><strong>Activity ID:</strong> {activity.activityId}</p>
+                                    <p><strong>Start Time:</strong> {activity.startTime}</p>
+                                    <p><strong>Stop Time:</strong> {activity.stopTime}</p>
+                                </div>
                             </li>
                         ))}
                     </ul>
