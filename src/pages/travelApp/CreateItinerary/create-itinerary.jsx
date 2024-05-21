@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, getAuth } from "../../../config/firebase-config";
-import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, addDoc, onSnapshot } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import "./create.css";
 
@@ -26,6 +26,10 @@ export const CreateItinerary = ({ currentUser }) => {
     const [markerPosition, setMarkerPosition] = useState(null);
     const [itineraryDate, setItineraryDate] = useState('');
     const [createButtonClicked, setCreateButtonClicked] = useState(false);
+    const [startTime, setStartTime] = useState('');
+    const [stopTime, setStopTime] = useState('');
+    const [itineraryId, setItineraryId] = useState(null);
+
     const [filters, setFilters] = useState({
         casual: false,
         cultural: false,
@@ -37,6 +41,7 @@ export const CreateItinerary = ({ currentUser }) => {
         seasonal: false
     });
     const [showDetails, setShowDetails] = useState({});
+    const [currentItineraryActivities, setCurrentItineraryActivities] = useState([]);
 
     useEffect(() => {
         const fetchCountries = async () => {
@@ -84,6 +89,23 @@ export const CreateItinerary = ({ currentUser }) => {
         }
     }, [selectedCity, filters]);
 
+    useEffect(() => {
+        if (itineraryId) {
+            const fetchCurrentItineraryActivities = () => {
+                const q = query(collection(db, "ActUsr"), where("itineraryId", "==", itineraryId));
+                return onSnapshot(q, (querySnapshot) => {
+                    const currentActivitiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setCurrentItineraryActivities(currentActivitiesData);
+                }, (error) => {
+                    console.error("Error fetching current itinerary activities:", error);
+                });
+            };
+
+            const unsubscribe = fetchCurrentItineraryActivities();
+            return () => unsubscribe();
+        }
+    }, [itineraryId]);
+
     const handleCreateItinerary = async () => {
         const auth = getAuth();
         const user = auth.currentUser;
@@ -112,13 +134,18 @@ export const CreateItinerary = ({ currentUser }) => {
                 userID: user.uid, // Using current user from authentication
                 completed: false
             });
-            console.log("Document written with ID: ", docRef.id);
+
+            // Extract the ID of the newly created itinerary
+            const itineraryId = docRef.id;
+            console.log("Document written with ID: ", itineraryId);
 
             // Reset form fields after successful creation
             setItineraryName('');
             setMarkerPosition(null);
             setItineraryDate('');
-            // Removed setCreateButtonClicked(false) as it may not be necessary
+
+            // Store the itinerary ID in state
+            setItineraryId(itineraryId); // Assuming you have a state variable for itineraryId
         } catch (error) {
             console.error("Error adding document: ", error);
             alert("An error occurred while creating the itinerary. Please try again later.");
@@ -172,8 +199,31 @@ export const CreateItinerary = ({ currentUser }) => {
         }
     };
 
+    const handleAddActivityToItinerary = async (activityId, itineraryId) => {
+        try {
+            // Add the activity to the ActUsr collection with start and stop times
+            await addDoc(collection(db, "ActUsr"), {
+                activityId,
+                itineraryId, // Store the itinerary ID
+                startTime,
+                stopTime,
+                photo: "" // Placeholder for photo, needs to be updated
+            });
+
+            // Update the current itinerary activities
+            setCurrentItineraryActivities([...currentItineraryActivities, { activityId, startTime, stopTime }]);
+
+            // Reset start and stop times
+            setStartTime('');
+            setStopTime('');
+        } catch (error) {
+            console.error("Error adding activity to itinerary:", error);
+            // You can add an error message here if needed
+        }
+    }
+
     return (
-        <div className="create-itinerary">
+        <div className="create-itinerary" style={{ overflowY: 'scroll', maxHeight: 'calc(100vh - 100px)' }}>
             <h1>Create Itinerary</h1>
             <input
                 type="text"
@@ -230,7 +280,8 @@ export const CreateItinerary = ({ currentUser }) => {
                     </label>
                     <label>
                         Cultural:
-                        <input type="checkbox" checked={filters.cultural} onChange={() => handleFilterChange('cultural')} />
+                        <input type="checkbox" checked={filters.cultural}
+                               onChange={() => handleFilterChange('cultural')} />
                     </label>
                     <label>
                         Food:
@@ -254,7 +305,8 @@ export const CreateItinerary = ({ currentUser }) => {
                     </label>
                     <label>
                         Seasonal:
-                        <input type="checkbox" checked={filters.seasonal} onChange={() => handleFilterChange('seasonal')} />
+                        <input type="checkbox" checked={filters.seasonal}
+                               onChange={() => handleFilterChange('seasonal')} />
                     </label>
                 </div>
             )}
@@ -278,8 +330,37 @@ export const CreateItinerary = ({ currentUser }) => {
                                         <p>
                                             <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
                                         </p>
+                                        <div>
+                                            <label>Start Time:</label>
+                                            <input type="time" value={startTime}
+                                                   onChange={(e) => setStartTime(e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <label>Stop Time:</label>
+                                            <input type="time" value={stopTime}
+                                                   onChange={(e) => setStopTime(e.target.value)} />
+                                        </div>
+                                        <button
+                                            onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add to Itinerary
+                                        </button>
                                     </div>
                                 )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+            {itineraryId && (
+                <div className="current-activities">
+                    <h2>Current Itinerary Activities</h2>
+                    <ul>
+                        {currentItineraryActivities.filter(activity => activity.itineraryId === itineraryId).map(activity => (
+                            <li key={activity.id}>
+                                <div>
+                                    <p><strong>Activity ID:</strong> {activity.activityId}</p>
+                                    <p><strong>Start Time:</strong> {activity.startTime}</p>
+                                    <p><strong>Stop Time:</strong> {activity.stopTime}</p>
+                                </div>
                             </li>
                         ))}
                     </ul>
