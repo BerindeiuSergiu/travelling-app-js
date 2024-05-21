@@ -23,3 +23,4 @@ const analytics = getAnalytics(app);
 export const auth = getAuth(app);
 export const provider = new EmailAuthProvider();
 export const db = getFirestore(app);
+export { getAuth } from "firebase/auth";

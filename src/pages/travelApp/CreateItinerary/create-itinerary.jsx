@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db } from "../../../config/firebase-config";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { db, getAuth } from "../../../config/firebase-config";
+import { collection, getDocs, query, where, addDoc } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import "./create.css";
 
@@ -13,6 +13,8 @@ const defaultCenter = {
     lat: -3.745,
     lng: -38.523
 };
+
+const googleMapsApiKey = "AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y"; // Replace with your actual API key
 
 export const CreateItinerary = ({ currentUser }) => {
     const [itineraryName, setItineraryName] = useState('');
@@ -82,8 +84,45 @@ export const CreateItinerary = ({ currentUser }) => {
         }
     }, [selectedCity, filters]);
 
-    const handleCreateItinerary = () => {
+    const handleCreateItinerary = async () => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        // Check if user is logged in
+        if (!user) {
+            alert("You must be logged in to create an itinerary.");
+            return;
+        }
+
+        // Check if marker position is set
+        if (!markerPosition) {
+            alert("Please select a location on the map.");
+            return;
+        }
+
+        // Set createButtonClicked to true
         setCreateButtonClicked(true);
+
+        try {
+            // Add new itinerary object to the database
+            const docRef = await addDoc(collection(db, "Itinerary"), {
+                name: itineraryName,
+                startLocation: markerPosition,
+                date: itineraryDate,
+                userID: user.uid, // Using current user from authentication
+                completed: false
+            });
+            console.log("Document written with ID: ", docRef.id);
+
+            // Reset form fields after successful creation
+            setItineraryName('');
+            setMarkerPosition(null);
+            setItineraryDate('');
+            // Removed setCreateButtonClicked(false) as it may not be necessary
+        } catch (error) {
+            console.error("Error adding document: ", error);
+            alert("An error occurred while creating the itinerary. Please try again later.");
+        }
     };
 
     const handleMapClick = (e) => {
@@ -99,11 +138,38 @@ export const CreateItinerary = ({ currentUser }) => {
         }));
     };
 
-    const toggleDetails = (id) => {
-        setShowDetails(prevDetails => ({
-            ...prevDetails,
-            [id]: !prevDetails[id]
-        }));
+    const toggleDetails = async (id) => {
+        if (!showDetails[id]) {
+            const activity = activities.find(activity => activity.id === id);
+            if (activity && activity.location) {
+                const address = await getAddressFromCoordinates(activity.location.lat, activity.location.lng);
+                setShowDetails(prevDetails => ({
+                    ...prevDetails,
+                    [id]: { ...prevDetails[id], address, ...activity }
+                }));
+            }
+        } else {
+            setShowDetails(prevDetails => ({
+                ...prevDetails,
+                [id]: !prevDetails[id]
+            }));
+        }
+    };
+
+    const getAddressFromCoordinates = async (lat, lng) => {
+        try {
+            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleMapsApiKey}`);
+            const data = await response.json();
+            if (data.status === "OK") {
+                return data.results[0].formatted_address;
+            } else {
+                console.error("Geocode was not successful for the following reason: " + data.status);
+                return "Address not found";
+            }
+        } catch (error) {
+            console.error("Error fetching address:", error);
+            return "Address not found";
+        }
     };
 
     return (
@@ -121,7 +187,7 @@ export const CreateItinerary = ({ currentUser }) => {
                 onChange={(e) => setItineraryDate(e.target.value)}
             />
             <div className="map-container">
-                <LoadScript googleMapsApiKey="AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y">
+                <LoadScript googleMapsApiKey={googleMapsApiKey}>
                     <GoogleMap
                         mapContainerStyle={mapContainerStyle}
                         center={defaultCenter}
@@ -203,12 +269,14 @@ export const CreateItinerary = ({ currentUser }) => {
                                 </button>
                                 {showDetails[activity.id] && (
                                     <div className="activity-details">
-                                        <p><strong>Description:</strong> {activity.description}</p>
-                                        <p><strong>Location:</strong> Latitude: {activity.location.lat},
-                                            Longitude: {activity.location.lng}</p>
-                                        <p><strong>Estimated Duration:</strong> {activity.time} minutes</p>
+                                        <p><strong>Description:</strong> {showDetails[activity.id].description}</p>
                                         <p>
-                                            <strong>Filters:</strong> {Object.keys(filters).filter(filter => activity[filter]).join(', ')}
+                                            <strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}
+                                        </p>
+                                        <p><strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes
+                                        </p>
+                                        <p>
+                                            <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
                                         </p>
                                     </div>
                                 )}
@@ -220,4 +288,3 @@ export const CreateItinerary = ({ currentUser }) => {
         </div>
     );
 };
-
