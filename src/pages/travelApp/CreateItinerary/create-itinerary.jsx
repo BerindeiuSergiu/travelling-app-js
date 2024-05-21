@@ -1,67 +1,103 @@
 import React, { useState, useEffect } from 'react';
 import { db } from "../../../config/firebase-config";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import "./create.css";
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y';
 
-export const CreateItinerary = () => {
-    const [activities, setActivities] = useState([]);
-    const [selectedActivities, setSelectedActivities] = useState([]);
+const mapContainerStyle = {
+    width: '100%',
+    height: '400px',
+};
+
+const defaultCenter = {
+    lat: -3.745,
+    lng: -38.523
+};
+
+export const CreateItinerary = ({ currentUser }) => {
     const [itineraryName, setItineraryName] = useState('');
-    const [tags, setTags] = useState({ casual: false, cultural: false, food: false, free: false, must: false, nature: false, night: false, seasonal: false });
-    const [countries, setCountries] = useState({});
+    const [selectedCountry, setSelectedCountry] = useState('');
+    const [selectedCity, setSelectedCity] = useState('');
+    const [countries, setCountries] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [activities, setActivities] = useState([]);
+    const [markerPosition, setMarkerPosition] = useState(null);
+    const [itineraryDate, setItineraryDate] = useState('');
+    const [createButtonClicked, setCreateButtonClicked] = useState(false);
+    const [filters, setFilters] = useState({
+        casual: false,
+        cultural: false,
+        food: false,
+        free: false,
+        must: false,
+        nature: false,
+        night: false,
+        seasonal: false
+    });
 
     useEffect(() => {
-        const fetchActivities = async () => {
-            try {
-                const activitiesRef = collection(db, "Activities");
-                const activitiesSnapshot = await getDocs(activitiesRef);
-                const activitiesData = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setActivities(activitiesData);
-            } catch (error) {
-                console.error("Error fetching activities:", error);
-            }
-        };
-
         const fetchCountries = async () => {
             try {
-                const countriesRef = collection(db, "Countries");
-                const countriesSnapshot = await getDocs(countriesRef);
-                const countriesData = {};
-                countriesSnapshot.forEach(doc => {
-                    countriesData[doc.id] = doc.data().name;
-                });
+                const countriesSnapshot = await getDocs(collection(db, "Countries"));
+                const countriesData = countriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setCountries(countriesData);
             } catch (error) {
                 console.error("Error fetching countries:", error);
             }
         };
 
-        fetchActivities();
         fetchCountries();
     }, []);
 
-    const handleCreateItinerary = async () => {
-        try {
-            const itineraryRef = collection(db, "Itinerary");
-            await addDoc(itineraryRef, {
-                name: itineraryName,
-                activities: selectedActivities
-            });
-            alert("Itinerary created successfully!");
-        } catch (error) {
-            console.error("Error creating itinerary:", error);
+    useEffect(() => {
+        if (selectedCountry) {
+            const fetchCities = async () => {
+                const citiesSnapshot = await getDocs(collection(db, `Countries/${selectedCountry}/Cities`));
+                const citiesData = citiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setCities(citiesData);
+            };
+            fetchCities();
         }
+    }, [selectedCountry]);
+
+    useEffect(() => {
+        if (selectedCity) {
+            const fetchActivities = async () => {
+                const activitiesRef = collection(db, "Activities");
+                let activitiesQuery = query(activitiesRef, where("cityID", "==", selectedCity));
+
+                // Apply filters
+                Object.entries(filters).forEach(([key, value]) => {
+                    if (value) {
+                        activitiesQuery = query(activitiesQuery, where(key, "==", true));
+                    }
+                });
+
+                const activitiesSnapshot = await getDocs(activitiesQuery);
+                const activitiesData = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setActivities(activitiesData);
+            };
+            fetchActivities();
+        }
+    }, [selectedCity, filters]);
+
+    const handleCreateItinerary = () => {
+        setCreateButtonClicked(true);
     };
 
-    const handleTagChange = (event) => {
-        setTags({ ...tags, [event.target.name]: event.target.checked });
+    const handleMapClick = (e) => {
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
+        setMarkerPosition({ lat, lng });
     };
 
-    const filteredActivities = activities.filter(activity => {
-        return Object.keys(tags).every(tag => !tags[tag] || activity[tag]);
-    });
+    const handleFilterChange = (filter) => {
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            [filter]: !prevFilters[filter]
+        }));
+    };
 
     return (
         <div className="create-itinerary">
@@ -72,75 +108,96 @@ export const CreateItinerary = () => {
                 value={itineraryName}
                 onChange={(e) => setItineraryName(e.target.value)}
             />
-            <div className="tags">
-                {Object.keys(tags).map(tag => (
-                    <label key={tag}>
-                        <input
-                            type="checkbox"
-                            name={tag}
-                            checked={tags[tag]}
-                            onChange={handleTagChange}
-                        />
-                        {tag}
-                    </label>
-                ))}
-            </div>
-            <div className="activities">
-                <h2>Activities</h2>
-                <ul>
-                    {filteredActivities.map(activity => (
-                        <li key={activity.id}>
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    value={activity.id}
-                                    onChange={(e) => {
-                                        const selected = e.target.checked;
-                                        setSelectedActivities(prevSelected =>
-                                            selected
-                                                ? [...prevSelected, activity.id]
-                                                : prevSelected.filter(id => id !== activity.id)
-                                        );
-                                    }}
-                                />
-                                {activity.name} - {countries[activity.cityID]} - {activity.location ? (
-                                <FetchLocation lat={activity.location.lat} lng={activity.location.lng} />
-                            ) : 'No location data'}
-                            </label>
-                        </li>
-                    ))}
-                </ul>
+            <input
+                type="date"
+                value={itineraryDate}
+                onChange={(e) => setItineraryDate(e.target.value)}
+            />
+            <div className="map-container">
+                <LoadScript googleMapsApiKey="AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y">
+                    <GoogleMap
+                        mapContainerStyle={mapContainerStyle}
+                        center={defaultCenter}
+                        zoom={10}
+                        onClick={handleMapClick}
+                    >
+                        {markerPosition && <Marker position={markerPosition} />}
+                    </GoogleMap>
+                </LoadScript>
             </div>
             <button onClick={handleCreateItinerary}>Create Itinerary</button>
+            {createButtonClicked && (
+                <div className="location-select">
+                    <label>
+                        Country:
+                        <select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)}>
+                            <option value="">Select a country</option>
+                            {countries.map(country => (
+                                <option key={country.id} value={country.id}>{country.name}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>
+                        City:
+                        <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
+                            <option value="">Select a city</option>
+                            {cities.map(city => (
+                                <option key={city.id} value={city.id}>{city.name}</option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
+            )}
+            {(selectedCountry && selectedCity) && (
+                <div className="filters">
+                    <h2>Filters</h2>
+                    <label>
+                        Casual:
+                        <input type="checkbox" checked={filters.casual} onChange={() => handleFilterChange('casual')} />
+                    </label>
+                    <label>
+                        Cultural:
+                        <input type="checkbox" checked={filters.cultural} onChange={() => handleFilterChange('cultural')} />
+                    </label>
+                    <label>
+                        Food:
+                        <input type="checkbox" checked={filters.food} onChange={() => handleFilterChange('food')} />
+                    </label>
+                    <label>
+                        Free:
+                        <input type="checkbox" checked={filters.free} onChange={() => handleFilterChange('free')} />
+                    </label>
+                    <label>
+                        Must:
+                        <input type="checkbox" checked={filters.must} onChange={() => handleFilterChange('must')} />
+                    </label>
+                    <label>
+                        Nature:
+                        <input type="checkbox" checked={filters.nature} onChange={() => handleFilterChange('nature')} />
+                    </label>
+                    <label>
+                        Night:
+                        <input type="checkbox" checked={filters.night} onChange={() => handleFilterChange('night')} />
+                    </label>
+                    <label>
+                        Seasonal:
+                        <input type="checkbox" checked={filters.seasonal} onChange={() => handleFilterChange('seasonal')} />
+                    </label>
+                </div>
+            )}
+            {selectedCity && (
+                <div className
+                         ="activities">
+                    <h2>Activities</h2>
+                    <ul>
+                        {activities.map(activity => (
+                            <li key={activity.id}>
+                                {activity.name}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
         </div>
     );
-};
-
-export const FetchLocation = ({ lat, lng }) => {
-    const [location, setLocation] = useState('Fetching location...');
-
-    useEffect(() => {
-        const fetchLocationDetails = async () => {
-            try {
-                const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const data = await response.json();
-                if (data.status === "OK" && data.results.length > 0) {
-                    setLocation(data.results[0].formatted_address);
-                } else {
-                    console.error("Geocoding API error:", data);
-                    setLocation("Location not found");
-                }
-            } catch (error) {
-                console.error("Error fetching location details:", error);
-                setLocation("Location not found");
-            }
-        };
-
-        fetchLocationDetails();
-    }, [lat, lng]);
-
-    return <span>{location}</span>;
 };
