@@ -236,7 +236,8 @@ export const CreateItinerary = ({ currentUser }) => {
                                         <p>
                                             <strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}
                                         </p>
-                                        <p><strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes
+                                        <p>
+                                            <strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes
                                         </p>
                                         <p>
                                             <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}

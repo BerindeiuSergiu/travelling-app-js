@@ -31,11 +31,15 @@ export const Activities = () => {
         name: ''
     });
 
+    const [modifiedFormData, setModifiedFormData] = useState(null); // State for modified activity data
+
     const [markerPosition, setMarkerPosition] = useState(null);
     const [countries, setCountries] = useState([]);
     const [cities, setCities] = useState([]);
+    const [activities, setActivities] = useState([]);
     const [selectedCountry, setSelectedCountry] = useState('');
     const [selectedCity, setSelectedCity] = useState('');
+    const [selectedActivity, setSelectedActivity] = useState(null);
     const [mapCenter, setMapCenter] = useState(defaultCenter);
 
     const [newCountry, setNewCountry] = useState('');
@@ -66,10 +70,29 @@ export const Activities = () => {
         }
     }, [selectedCountry]);
 
+    useEffect(() => {
+        const fetchActivities = async () => {
+            const activitySnapshot = await getDocs(collection(db, "Activities"));
+            const activityData = activitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            setActivities(activityData);
+        };
+
+        fetchActivities();
+    }, []);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData({
             ...formData,
+            [name]: type === 'checkbox' ? checked : value
+        });
+    };
+
+    const handleChangeModifiedData = (e) => {
+        const { name, value, type, checked } = e.target;
+        setModifiedFormData({
+            ...modifiedFormData,
             [name]: type === 'checkbox' ? checked : value
         });
     };
@@ -92,8 +115,28 @@ export const Activities = () => {
                 cityID: selectedCity
             });
             alert("Activity added successfully!");
+
+            // Fetch updated activities
+            const activitySnapshot = await getDocs(collection(db, "Activities"));
+            const activityData = activitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setActivities(activityData);
         } catch (error) {
             console.error("Error adding activity: ", error);
+        }
+    };
+
+    const handleModifyActivity = async () => {
+        try {
+            const activityRef = doc(db, "Activities", selectedActivity.id);
+            await updateDoc(activityRef, modifiedFormData); // Update Firestore document with modified data
+            alert("Activity modified successfully!");
+
+            // Fetch updated activities
+            const activitySnapshot = await getDocs(collection(db, "Activities"));
+            const activityData = activitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setActivities(activityData);
+        } catch (error) {
+            console.error("Error modifying activity: ", error);
         }
     };
 
@@ -219,6 +262,30 @@ export const Activities = () => {
         }
     };
 
+    const handleSelectActivity = (activityId) => {
+        const activity = activities.find(a => a.id === activityId);
+        setSelectedActivity(activity);
+        setModifiedFormData(activity); // Set the modified data to initially match the selected activity
+    };
+
+    const handleDeleteActivity = async (activityId) => {
+        if (window.confirm("Are you sure you want to delete this activity?")) {
+            try {
+                await deleteDoc(doc(db, "Activities", activityId));
+
+                // Update activities state after deleting an activity
+                const activitySnapshot = await getDocs(collection(db, "Activities"));
+                const activityData = activitySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setActivities(activityData);
+
+                alert("Activity deleted successfully!");
+                setSelectedActivity(null);
+            } catch (error) {
+                console.error("Error deleting activity: ", error);
+            }
+        }
+    };
+
     return (
         <div className="activities-page" style={{ height: '100vh', overflow: 'auto' }}>
             <h1>Add New Country</h1>
@@ -249,6 +316,7 @@ export const Activities = () => {
                 </label>
                 <button type="submit">Add City</button>
             </form>
+
             <h1>Add New Activity</h1>
             <form onSubmit={handleSubmit}>
                 <label>
@@ -332,6 +400,47 @@ export const Activities = () => {
                 </div>
                 <button type="submit">Add Activity</button>
             </form>
+
+            <h1>Activities</h1>
+            <div>
+                <label>Select Activity:</label>
+                <select onChange={(e) => handleSelectActivity(e.target.value)}>
+                    <option value="">Select an activity</option>
+                    {activities.map((activity) => (
+                        <option key={activity.id} value={activity.id}>
+                            {activity.name}
+                        </option>
+                    ))}
+                </select>
+                {selectedActivity && (
+                    <div>
+                        <h2>Activity Details</h2>
+                        <p><strong>Name:</strong> {selectedActivity.name}</p>
+                        <p><strong>Description:</strong> {selectedActivity.description}</p>
+                        <p><strong>Duration:</strong> {selectedActivity.time} minutes</p>
+                        <p><strong>Location:</strong> {selectedActivity.location ? `${selectedActivity.location.lat}, ${selectedActivity.location.lng}` : 'Not specified'}</p>
+                        <button onClick={() => handleDeleteActivity(selectedActivity.id)}>Delete Activity</button>
+                        <hr />
+                        <h2>Modify Activity</h2>
+                        <form onSubmit={handleModifyActivity}>
+                            <label>
+                                Name:
+                                <input type="text" name="name" value={modifiedFormData.name} onChange={handleChangeModifiedData} required/>
+                            </label>
+                            <label>
+                                Description:
+                                <textarea name="description" value={modifiedFormData.description} onChange={handleChangeModifiedData} required/>
+                            </label>
+                            <label>
+                                Duration (minutes):
+                                <input type="number" name="time" value={modifiedFormData.time} onChange={handleChangeModifiedData} required/>
+                            </label>
+                            <button type="submit">Save Changes</button>
+                        </form>
+                    </div>
+                )}
+            </div>
+
             <h1>Modify or Delete Country</h1>
             <div>
                 <label>Select Country:</label>
