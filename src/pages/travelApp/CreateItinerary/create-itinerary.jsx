@@ -4,7 +4,6 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import "./create.css";
 
-
 const mapContainerStyle = {
     width: '100%',
     height: '400px',
@@ -35,6 +34,7 @@ export const CreateItinerary = ({ currentUser }) => {
         night: false,
         seasonal: false
     });
+    const [showDetails, setShowDetails] = useState({});
 
     useEffect(() => {
         const fetchCountries = async () => {
@@ -96,6 +96,13 @@ export const CreateItinerary = ({ currentUser }) => {
         setFilters(prevFilters => ({
             ...prevFilters,
             [filter]: !prevFilters[filter]
+        }));
+    };
+
+    const toggleDetails = (id) => {
+        setShowDetails(prevDetails => ({
+            ...prevDetails,
+            [id]: !prevDetails[id]
         }));
     };
 
@@ -186,13 +193,25 @@ export const CreateItinerary = ({ currentUser }) => {
                 </div>
             )}
             {selectedCity && (
-                <div className
-                         ="activities">
+                <div className="activities">
                     <h2>Activities</h2>
                     <ul>
                         {activities.map(activity => (
                             <li key={activity.id}>
-                                {activity.name}
+                                <button onClick={() => toggleDetails(activity.id)}>
+                                    {activity.name}
+                                </button>
+                                {showDetails[activity.id] && (
+                                    <div className="activity-details">
+                                        <p><strong>Description:</strong> {activity.description}</p>
+                                        <p><strong>Location:</strong> Latitude: {activity.location.lat},
+                                            Longitude: {activity.location.lng}</p>
+                                        <p><strong>Estimated Duration:</strong> {activity.time} minutes</p>
+                                        <p>
+                                            <strong>Filters:</strong> {Object.keys(filters).filter(filter => activity[filter]).join(', ')}
+                                        </p>
+                                    </div>
+                                )}
                             </li>
                         ))}
                     </ul>
@@ -201,3 +220,4 @@ export const CreateItinerary = ({ currentUser }) => {
         </div>
     );
 };
+
