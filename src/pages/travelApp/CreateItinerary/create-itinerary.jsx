@@ -14,6 +14,8 @@ const defaultCenter = {
     lng: -38.523
 };
 
+const googleMapsApiKey = "AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y"; // Replace with your actual API key
+
 export const CreateItinerary = ({ currentUser }) => {
     const [itineraryName, setItineraryName] = useState('');
     const [selectedCountry, setSelectedCountry] = useState('');
@@ -99,11 +101,38 @@ export const CreateItinerary = ({ currentUser }) => {
         }));
     };
 
-    const toggleDetails = (id) => {
-        setShowDetails(prevDetails => ({
-            ...prevDetails,
-            [id]: !prevDetails[id]
-        }));
+    const toggleDetails = async (id) => {
+        if (!showDetails[id]) {
+            const activity = activities.find(activity => activity.id === id);
+            if (activity && activity.location) {
+                const address = await getAddressFromCoordinates(activity.location.lat, activity.location.lng);
+                setShowDetails(prevDetails => ({
+                    ...prevDetails,
+                    [id]: { ...prevDetails[id], address, ...activity }
+                }));
+            }
+        } else {
+            setShowDetails(prevDetails => ({
+                ...prevDetails,
+                [id]: !prevDetails[id]
+            }));
+        }
+    };
+
+    const getAddressFromCoordinates = async (lat, lng) => {
+        try {
+            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleMapsApiKey}`);
+            const data = await response.json();
+            if (data.status === "OK") {
+                return data.results[0].formatted_address;
+            } else {
+                console.error("Geocode was not successful for the following reason: " + data.status);
+                return "Address not found";
+            }
+        } catch (error) {
+            console.error("Error fetching address:", error);
+            return "Address not found";
+        }
     };
 
     return (
@@ -121,7 +150,7 @@ export const CreateItinerary = ({ currentUser }) => {
                 onChange={(e) => setItineraryDate(e.target.value)}
             />
             <div className="map-container">
-                <LoadScript googleMapsApiKey="AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y">
+                <LoadScript googleMapsApiKey={googleMapsApiKey}>
                     <GoogleMap
                         mapContainerStyle={mapContainerStyle}
                         center={defaultCenter}
@@ -203,12 +232,11 @@ export const CreateItinerary = ({ currentUser }) => {
                                 </button>
                                 {showDetails[activity.id] && (
                                     <div className="activity-details">
-                                        <p><strong>Description:</strong> {activity.description}</p>
-                                        <p><strong>Location:</strong> Latitude: {activity.location.lat},
-                                            Longitude: {activity.location.lng}</p>
-                                        <p><strong>Estimated Duration:</strong> {activity.time} minutes</p>
+                                        <p><strong>Description:</strong> {showDetails[activity.id].description}</p>
+                                        <p><strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}</p>
+                                        <p><strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes</p>
                                         <p>
-                                            <strong>Filters:</strong> {Object.keys(filters).filter(filter => activity[filter]).join(', ')}
+                                            <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
                                         </p>
                                     </div>
                                 )}
@@ -220,4 +248,3 @@ export const CreateItinerary = ({ currentUser }) => {
         </div>
     );
 };
-
