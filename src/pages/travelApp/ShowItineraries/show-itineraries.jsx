@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { db, getAuth } from "../../../config/firebase-config";
-import { collection, getDocs, query, where, deleteDoc, doc, addDoc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, deleteDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Import storage functions
 import { useNavigate } from 'react-router-dom';
 import "./show.css";
@@ -22,6 +22,7 @@ export const ShowItineraries = () => {
         const auth = getAuth();
         const user = auth.currentUser;
         setCurrentUser(user);
+        console.log("Current User:", user);
     }, []);
 
     const fetchItineraries = useCallback(async () => {
@@ -33,6 +34,7 @@ export const ShowItineraries = () => {
             const itinerariesSnapshot = await getDocs(q);
             const itinerariesData = itinerariesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setItineraries(itinerariesData);
+            console.log("Fetched Itineraries:", itinerariesData);
         } catch (error) {
             console.error("Error fetching itineraries:", error);
         }
@@ -57,6 +59,7 @@ export const ShowItineraries = () => {
 
             const activitiesData = await Promise.all(activitiesDataPromises);
             setActivities(activitiesData);
+            console.log("Fetched Activities for Itinerary:", activitiesData);
         } catch (error) {
             console.error("Error fetching activities for itinerary:", error);
         }
@@ -79,36 +82,38 @@ export const ShowItineraries = () => {
             });
 
             setItineraries(prevItineraries => prevItineraries.filter(itinerary => itinerary.id !== itineraryId));
+            console.log("Deleted Itinerary and its activities:", itineraryId);
         } catch (error) {
             console.error("Error deleting itinerary:", error);
         }
     };
 
     const handleUpdateActivity = async () => {
+        console.log("Update button clicked");
         if (!selectedItinerary || !selectedActivity || !photoFile) {
             alert("Please select an itinerary, an activity, and provide a photo.");
             return;
         }
 
         try {
-            // Upload photo to storage
+            console.log("Uploading photo...");
             const storage = getStorage();
             const storageRef = ref(storage, `activity_photos/${selectedActivity}/${photoFile.name}`);
             await uploadBytes(storageRef, photoFile);
+            console.log("Photo uploaded to Storage:", photoFile.name);
 
-            // Get download URL of uploaded photo
             const photoURL = await getDownloadURL(storageRef);
+            console.log("Photo URL:", photoURL);
 
-            // Find the document in ActUsr collection with matching itineraryId and activityId
             const actUsrRef = collection(db, "ActUsr");
             const querySnapshot = await getDocs(query(actUsrRef, where("itineraryId", "==", selectedItinerary.id), where("activityId", "==", selectedActivity)));
 
             querySnapshot.forEach(async (doc) => {
                 try {
-                    // Update the document to include the photo
                     await updateDoc(doc.ref, {
                         photo: photoURL,
                     });
+                    console.log("Updated activity document with photo URL:", doc.ref.id);
                 } catch (error) {
                     console.error("Error updating document:", error);
                 }
@@ -135,6 +140,7 @@ export const ShowItineraries = () => {
             await fetchActivitiesForItinerary(itinerary.id);
             setIsUpdateButtonClicked(true);
             setCurrentItineraryId(itinerary.id);
+            console.log("Selected Itinerary for Update:", itinerary);
         }
     };
 
@@ -148,6 +154,7 @@ export const ShowItineraries = () => {
             const photosSnapshot = await getDocs(photosQuery);
             const photosData = photosSnapshot.docs.map(doc => doc.data().photo);
             setItineraryPhotos(photosData);
+            console.log("Fetched Photos for Itinerary:", photosData);
         } catch (error) {
             console.error("Error fetching photos for itinerary:", error);
         }
@@ -155,14 +162,14 @@ export const ShowItineraries = () => {
 
     const handleToggleViewPhotos = (itineraryId) => {
         if (itineraryPhotos.length > 0 && isViewPhotosButtonClicked && currentItineraryId === itineraryId) {
-            // If photos are already shown, reset itineraryPhotos to hide them
             setItineraryPhotos([]);
             setIsViewPhotosButtonClicked(false);
+            console.log("Hiding Photos for Itinerary:", itineraryId);
         } else {
-            // Otherwise, fetch and show photos
             handleViewPhotos(itineraryId);
             setIsViewPhotosButtonClicked(true);
             setCurrentItineraryId(itineraryId);
+            console.log("Showing Photos for Itinerary:", itineraryId);
         }
     };
 
