@@ -6,7 +6,8 @@ import { SignUp } from "./pages/signUp/index";
 import { Admin } from "./pages/Admin/index";
 import { ShowItineraries } from "./pages/travelApp/ShowItineraries/show-itineraries";
 import { CreateItinerary } from "./pages/travelApp/CreateItinerary/create-itinerary";
-import { Activities } from "./pages/Activities/index"
+import { Activities } from "./pages/Activities/index";
+import { ActivityDetails } from "./pages/ActivityDetails/index";
 
 function App() {
     return (
@@ -33,6 +34,7 @@ function App() {
                         <Route path="/sign-up" element={<SignUp />} />
                         <Route path="/admin" element={<Admin />} />
                         <Route path="/activities" element={<Activities />} />
+                        <Route path="/activity-details/:itineraryId" element={<ActivityDetails />} />
                     </Routes>
                 </div>
             </Router>

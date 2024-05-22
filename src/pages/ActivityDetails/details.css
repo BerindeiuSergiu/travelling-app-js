@@ -1,0 +1,19 @@
+.activity-details {
+    color: black;
+    padding: 20px;
+}
+
+.activity-details ul {
+    list-style: none;
+    padding: 0;
+}
+
+.activity-details li {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.activity-details div {
+    margin-bottom: 5px;
+}

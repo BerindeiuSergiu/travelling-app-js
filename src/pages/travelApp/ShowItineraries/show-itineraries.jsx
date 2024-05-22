@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { db, getAuth } from "../../../config/firebase-config";
 import { collection, getDocs, query, where, deleteDoc, doc, addDoc, getDoc } from "firebase/firestore";
+import { useNavigate } from 'react-router-dom';
 import "./show.css";
 
 export const ShowItineraries = () => {
@@ -10,8 +11,8 @@ export const ShowItineraries = () => {
     const [selectedActivity, setSelectedActivity] = useState("");
     const [photo, setPhoto] = useState("");
     const [activities, setActivities] = useState([]);
+    const navigate = useNavigate();
 
-    // Fetch itineraries from Firestore when currentUser changes
     useEffect(() => {
         const auth = getAuth();
         const user = auth.currentUser;
@@ -116,6 +117,10 @@ export const ShowItineraries = () => {
         }
     };
 
+    const handleViewDetails = (itineraryId) => {
+        navigate(`/activity-details/${itineraryId}`);
+    };
+
     return (
         <div className="show-itineraries">
             <h1>Active Itineraries</h1>
@@ -125,6 +130,7 @@ export const ShowItineraries = () => {
                         {itinerary.name}
                         <button onClick={() => deleteItinerary(itinerary.id)}>Delete</button>
                         <button onClick={() => handleUpdateButton(itinerary)}>Update</button>
+                        <button onClick={() => handleViewDetails(itinerary.id)}>View Details</button>
                     </li>
                 ))}
             </ul>
