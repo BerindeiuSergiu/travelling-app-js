@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { db } from "../../config/firebase-config";
 import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { useParams } from 'react-router-dom';
-import { GoogleMap, LoadScript, Marker, DirectionsService, DirectionsRenderer } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, DirectionsRenderer } from '@react-google-maps/api';
 import "./details.css";
 
 const googleMapsApiKey = "AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y"; // Replace with your actual API key
@@ -24,12 +24,48 @@ const getAddressFromCoordinates = async (lat, lng) => {
 };
 
 const formatTime = (minutes) => {
-    if (minutes < 60) {
-        return `${minutes} minutes`;
+    const numMinutes = Number(minutes);
+    if (isNaN(numMinutes)) return 'Invalid time';
+    const hours = Math.floor(numMinutes / 60);
+    const mins = numMinutes % 60;
+    return hours > 0 ? `${hours} hr ${mins.toFixed(0)} min` : `${mins.toFixed(0)} min`;
+};
+
+const fetchTravelTimes = async (origin, destination) => {
+    const directionsService = new window.google.maps.DirectionsService();
+
+    const fetchRoute = (mode) => new Promise((resolve, reject) => {
+        directionsService.route({
+            origin,
+            destination,
+            travelMode: mode,
+        }, (result, status) => {
+            if (status === window.google.maps.DirectionsStatus.OK && result.routes[0] && result.routes[0].legs[0]) {
+                const travelTimeInMinutes = result.routes[0].legs[0].duration.value / 60;
+                resolve(travelTimeInMinutes);
+            } else {
+                reject(status);
+            }
+        });
+    });
+
+    try {
+        const [car, foot] = await Promise.all([
+            fetchRoute(window.google.maps.TravelMode.DRIVING),
+            fetchRoute(window.google.maps.TravelMode.WALKING),
+        ]);
+
+        return {
+            car: formatTime(car),
+            foot: formatTime(foot),
+        };
+    } catch (error) {
+        console.error("Error fetching travel times:", error);
+        return {
+            car: 'Error',
+            foot: 'Error',
+        };
     }
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}`;
 };
 
 export const ActivityDetails = () => {
@@ -37,8 +73,9 @@ export const ActivityDetails = () => {
     const [itineraryName, setItineraryName] = useState('');
     const [activities, setActivities] = useState([]);
     const [currentLocation, setCurrentLocation] = useState(null);
+    const [selectedLocation, setSelectedLocation] = useState(null);
     const [directions, setDirections] = useState(null);
-    const [travelTime, setTravelTime] = useState('');
+    const [travelTimes, setTravelTimes] = useState([]);
     const [map, setMap] = useState(null);
 
     const fetchItineraryDetails = useCallback(async () => {
@@ -62,17 +99,25 @@ export const ActivityDetails = () => {
             const activitiesSnapshot = await getDocs(q);
             const activityIds = activitiesSnapshot.docs.map(doc => doc.data().activityId);
 
-            const activitiesDataPromises = activityIds.map(async (activityId) => {
-                const activityRef = doc(db, "Activities", activityId);
-                const activityDoc = await getDoc(activityRef);
-                const activityData = activityDoc.data();
+            const activitiesDataPromises = activitiesSnapshot.docs.map(async (activityDoc) => {
+                const actData = activityDoc.data();
+                const activityRef = doc(db, "Activities", actData.activityId);
+                const activityDataDoc = await getDoc(activityRef);
+                const activityData = activityDataDoc.data();
 
                 const address = await getAddressFromCoordinates(activityData.location.lat, activityData.location.lng);
 
-                return { id: activityId, ...activityData, address };
+                return {
+                    id: actData.activityId,
+                    ...activityData,
+                    address,
+                    startTime: actData.startTime,
+                    stopTime: actData.stopTime
+                };
             });
 
             const activitiesData = await Promise.all(activitiesDataPromises);
+            console.log("Fetched activities data:", activitiesData);
             setActivities(activitiesData);
         } catch (error) {
             console.error("Error fetching activities for itinerary:", error);
@@ -84,36 +129,36 @@ export const ActivityDetails = () => {
         fetchActivitiesForItinerary();
     }, [fetchItineraryDetails, fetchActivitiesForItinerary]);
 
+    useEffect(() => {
+        const calculateTravelTimesSequentially = async () => {
+            if (activities.length === 0) return;
+
+            let times = [];
+            let origin = currentLocation;
+
+            for (let i = 0; i < activities.length; i++) {
+                const destination = { lat: activities[i].location.lat, lng: activities[i].location.lng };
+                const travelTime = await fetchTravelTimes(origin, destination);
+                times.push(travelTime);
+                origin = destination;
+            }
+
+            setTravelTimes(times);
+        };
+
+        calculateTravelTimesSequentially();
+    }, [activities, currentLocation]);
+
     const handleMapClick = (event) => {
         const lat = event.latLng.lat();
         const lng = event.latLng.lng();
-        setCurrentLocation({ lat, lng });
+        const newLocation = { lat, lng };
+        setSelectedLocation(newLocation);
+        handleSelectLocation(newLocation);
     };
 
-    const calculateRoute = (destination) => {
-        if (!currentLocation) return;
-
-        const directionsService = new window.google.maps.DirectionsService();
-        directionsService.route(
-            {
-                origin: currentLocation,
-                destination,
-                travelMode: window.google.maps.TravelMode.DRIVING,
-            },
-            (result, status) => {
-                if (status === window.google.maps.DirectionsStatus.OK) {
-                    setDirections(result);
-                    const travelTimeInMinutes = result.routes[0].legs[0].duration.value / 60;
-                    setTravelTime(formatTime(travelTimeInMinutes));
-                } else {
-                    console.error(`error fetching directions ${result}`);
-                }
-            }
-        );
-    };
-
-    const handleActivityClick = (activity) => {
-        calculateRoute({ lat: activity.location.lat, lng: activity.location.lng });
+    const handleSelectLocation = (location) => {
+        setCurrentLocation(location);
     };
 
     const onMapLoad = (mapInstance) => {
@@ -124,32 +169,48 @@ export const ActivityDetails = () => {
     };
 
     return (
-        <div className="activity-details">
+        <div className="activity-details" style={{maxHeight: 'calc(100vh - 150px)', overflowY: 'auto'}}>
             <h1>Activities for {itineraryName}</h1>
             <div className="map-container">
                 <LoadScript googleMapsApiKey={googleMapsApiKey}>
                     <GoogleMap
-                        mapContainerStyle={{ width: '100%', height: '400px' }}
-                        center={currentLocation || { lat: 0, lng: 0 }}
+                        mapContainerStyle={{width: '100%', height: '400px'}}
+                        center={currentLocation || {lat: 0, lng: 0}}
                         zoom={10}
                         onClick={handleMapClick}
                         onLoad={onMapLoad}
                     >
-                        {currentLocation && <Marker position={currentLocation} />}
-                        {directions && <DirectionsRenderer directions={directions} />}
+                        {currentLocation && <Marker position={currentLocation}/>}
+                        {selectedLocation && <Marker position={selectedLocation}/>}
+                        {directions && <DirectionsRenderer directions={directions}/>}
                     </GoogleMap>
                 </LoadScript>
             </div>
-            {travelTime && <div className="travel-time">Time needed: {travelTime}</div>}
             <ul>
-                {activities.map((activity) => (
-                    <li key={activity.id} onClick={() => handleActivityClick(activity)}>
-                        <div>Name: {activity.name}</div>
-                        <div>Time needed: {formatTime(activity.time)}</div>
-                        <div>Address: {activity.address || "Fetching address..."}</div>
-                    </li>
-                ))}
+                {activities
+                    .sort((a, b) => {
+                        const startTimeA = new Date(`1970-01-01T${a.startTime}`);
+                        const startTimeB = new Date(`1970-01-01T${b.startTime}`);
+                        return startTimeA - startTimeB;
+                    })
+                    .map((activity, index) => (
+                        <li key={activity.id}>
+                            <div>Name: {activity.name}</div>
+                            <div>Time needed: {formatTime(activity.time)}</div>
+                            <div>Address: {activity.address || "Fetching address..."}</div>
+                            <div>Start time: {activity.startTime}</div>
+                            <div>Stop time: {activity.stopTime}</div>
+                            {travelTimes[index] && (
+                                <>
+                                    <div>Time needed by car: {travelTimes[index].car}</div>
+                                    <div>Time needed by foot: {travelTimes[index].foot}</div>
+                                </>
+                            )}
+                        </li>
+                    ))}
             </ul>
         </div>
     );
 };
+
+export default ActivityDetails;
