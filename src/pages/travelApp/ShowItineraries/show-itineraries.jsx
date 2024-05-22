@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { db, getAuth } from "../../../config/firebase-config";
-import { collection, getDocs, query, where, deleteDoc, doc, addDoc, getDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, deleteDoc, doc, addDoc, getDoc, updateDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Import storage functions
 import { useNavigate } from 'react-router-dom';
 import "./show.css";
 
@@ -9,8 +10,9 @@ export const ShowItineraries = () => {
     const [currentUser, setCurrentUser] = useState(null);
     const [selectedItinerary, setSelectedItinerary] = useState(null);
     const [selectedActivity, setSelectedActivity] = useState("");
-    const [photo, setPhoto] = useState("");
+    const [photoFile, setPhotoFile] = useState(null); // State to hold the selected photo file
     const [activities, setActivities] = useState([]);
+    const [itineraryPhotos, setItineraryPhotos] = useState([]); // State to hold photos for the selected itinerary
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -80,28 +82,40 @@ export const ShowItineraries = () => {
     };
 
     const handleUpdateActivity = async () => {
-        if (!selectedItinerary || !selectedActivity || !photo) {
+        if (!selectedItinerary || !selectedActivity || !photoFile) {
             alert("Please select an itinerary, an activity, and provide a photo.");
             return;
         }
 
         try {
-            const activityRef = doc(db, "Activities", selectedActivity);
-            const activityDoc = await getDoc(activityRef);
-            const activityData = activityDoc.data();
+            // Upload photo to storage
+            const storage = getStorage();
+            const storageRef = ref(storage, `activity_photos/${selectedActivity}/${photoFile.name}`);
+            await uploadBytes(storageRef, photoFile);
 
-            await addDoc(collection(db, "ActUsr"), {
-                activityId: selectedActivity,
-                activityName: activityData.name,
-                itineraryId: selectedItinerary.id,
-                photo,
+            // Get download URL of uploaded photo
+            const photoURL = await getDownloadURL(storageRef);
+
+            // Find the document in ActUsr collection with matching itineraryId and activityId
+            const actUsrRef = collection(db, "ActUsr");
+            const querySnapshot = await getDocs(query(actUsrRef, where("itineraryId", "==", selectedItinerary.id), where("activityId", "==", selectedActivity)));
+
+            querySnapshot.forEach(async (doc) => {
+                try {
+                    // Update the document to include the photo
+                    await updateDoc(doc.ref, {
+                        photo: photoURL,
+                    });
+                } catch (error) {
+                    console.error("Error updating document:", error);
+                }
             });
 
             setSelectedItinerary(null);
             setSelectedActivity("");
-            setPhoto("");
+            setPhotoFile(null);
         } catch (error) {
-            console.error("Error adding activity:", error);
+            console.error("Error adding photo to activity:", error);
         }
     };
 
@@ -109,7 +123,7 @@ export const ShowItineraries = () => {
         if (itinerary === selectedItinerary) {
             setSelectedItinerary(null);
             setSelectedActivity("");
-            setPhoto("");
+            setPhotoFile(null);
             setActivities([]);
         } else {
             setSelectedItinerary(itinerary);
@@ -119,6 +133,17 @@ export const ShowItineraries = () => {
 
     const handleViewDetails = (itineraryId) => {
         navigate(`/activity-details/${itineraryId}`);
+    };
+
+    const handleViewPhotos = async (itineraryId) => {
+        try {
+            const photosQuery = query(collection(db, "ActUsr"), where("itineraryId", "==", itineraryId));
+            const photosSnapshot = await getDocs(photosQuery);
+            const photosData = photosSnapshot.docs.map(doc => doc.data().photo);
+            setItineraryPhotos(photosData);
+        } catch (error) {
+            console.error("Error fetching photos for itinerary:", error);
+        }
     };
 
     return (
@@ -131,6 +156,7 @@ export const ShowItineraries = () => {
                         <button onClick={() => deleteItinerary(itinerary.id)}>Delete</button>
                         <button onClick={() => handleUpdateButton(itinerary)}>Update</button>
                         <button onClick={() => handleViewDetails(itinerary.id)}>View Details</button>
+                        <button onClick={() => handleViewPhotos(itinerary.id)}>View Photos</button>
                     </li>
                 ))}
             </ul>
@@ -147,8 +173,18 @@ export const ShowItineraries = () => {
                         ))}
                     </select>
                     <label>Photo:</label>
-                    <input type="text" value={photo} onChange={(e) => setPhoto(e.target.value)} />
+                    <input type="file" onChange={(e) => setPhotoFile(e.target.files[0])} accept="image/*" />
                     <button onClick={handleUpdateActivity}>Save</button>
+                </div>
+            )}
+            {itineraryPhotos.length > 0 && (
+                <div>
+                    <h2>Photos for {selectedItinerary.name}</h2>
+                    <div className="photos-container">
+                        {itineraryPhotos.map((photo, index) => (
+                            <img key={index} src={photo} alt={`Photo ${index}`} />
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
