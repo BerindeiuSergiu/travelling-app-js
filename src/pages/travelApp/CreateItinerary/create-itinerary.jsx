@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, getAuth } from "../../../config/firebase-config";
-import { collection, getDocs, query, where, addDoc, onSnapshot, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, addDoc, onSnapshot, doc, getDoc, deleteDoc } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import "./create.css";
 
@@ -209,14 +209,66 @@ export const CreateItinerary = ({ currentUser }) => {
 
     const handleAddActivityToItinerary = async (activityId, itineraryId) => {
         try {
-            // Add the activity to the ActUsr collection with start and stop times
+            const newStartTime = new Date(`1970-01-01T${startTime}`);
+            const newStopTime = new Date(`1970-01-01T${stopTime}`);
+
+            const overlappingActivities = currentItineraryActivities.filter(activity => {
+                const existingStartTime = new Date(`1970-01-01T${activity.startTime}`);
+                const existingStopTime = new Date(`1970-01-01T${activity.stopTime}`);
+
+                return (
+                    (newStartTime >= existingStartTime && newStartTime < existingStopTime) ||
+                    (newStopTime > existingStartTime && newStopTime <= existingStopTime) ||
+                    (newStartTime <= existingStartTime && newStopTime >= existingStopTime)
+                );
+            });
+
+            if (overlappingActivities.length > 0) {
+                alert('The selected activity overlaps with an existing activity in the itinerary. Please select a different time slot.');
+                return;
+            }
+
+            console.log("No overlapping activities found. Adding activity to itinerary...");
+
             await addDoc(collection(db, "ActUsr"), {
                 activityId,
-                itineraryId, // Store the itinerary ID
+                itineraryId,
                 startTime,
                 stopTime,
-                photo: "" // Placeholder for photo, needs to be updated
+                photo: ""
             });
+
+            console.log("Activity added to itinerary successfully.");
+
+            const q = query(collection(db, "ActUsr"), where("itineraryId", "==", itineraryId));
+            const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+                const updatedActivities = await Promise.all(
+                    querySnapshot.docs.map(async (docSnapshot) => {
+                        const data = docSnapshot.data();
+                        const activityDocRef = doc(db, "Activities", data.activityId);
+                        const activityDoc = await getDoc(activityDocRef);
+                        const activityData = activityDoc.exists() ? activityDoc.data() : {};
+                        return { id: docSnapshot.id, ...data, activityName: activityData.name || "Unknown" };
+                    })
+                );
+                setCurrentItineraryActivities(updatedActivities);
+            }, (error) => {
+                console.error("Error fetching current itinerary activities:", error);
+            });
+
+            setStartTime('');
+            setStopTime('');
+
+            return () => unsubscribe();
+        } catch (error) {
+            console.error("Error adding activity to itinerary:", error);
+        }
+    };
+
+    const handleDeleteActivityFromItinerary = async (activityId) => {
+        try {
+            // Delete the activity from the ActUsr collection
+            await deleteDoc(doc(db, "ActUsr", activityId));
 
             // Update the current itinerary activities in real-time
             const q = query(collection(db, "ActUsr"), where("itineraryId", "==", itineraryId));
@@ -235,15 +287,10 @@ export const CreateItinerary = ({ currentUser }) => {
                 console.error("Error fetching current itinerary activities:", error);
             });
 
-            // Reset start and stop times
-            setStartTime('');
-            setStopTime('');
-
             // Unsubscribe from real-time updates when component unmounts
             return () => unsubscribe();
         } catch (error) {
-            console.error("Error adding activity to itinerary:", error);
-            // You can add an error message or alert here if needed
+            console.error("Error deleting activity from itinerary:", error);
         }
     };
 
@@ -380,15 +427,25 @@ export const CreateItinerary = ({ currentUser }) => {
                 <div className="current-activities">
                     <h2>Current Itinerary Activities</h2>
                     <ul>
-                        {currentItineraryActivities.filter(activity => activity.itineraryId === itineraryId).map(activity => (
-                            <li key={activity.id}>
-                                <div>
-                                    <p><strong>Activity Name:</strong> {activity.activityName}</p>
-                                    <p><strong>Start Time:</strong> {activity.startTime}</p>
-                                    <p><strong>Stop Time:</strong> {activity.stopTime}</p>
-                                </div>
-                            </li>
-                        ))}
+                        {currentItineraryActivities
+                            .filter(activity => activity.itineraryId === itineraryId)
+                            .sort((a, b) => {
+                                // Convert start times to Date objects for comparison
+                                const startTimeA = new Date(`1970-01-01T${a.startTime}`);
+                                const startTimeB = new Date(`1970-01-01T${b.startTime}`);
+                                // Compare start times
+                                return startTimeA - startTimeB;
+                            })
+                            .map(activity => (
+                                <li key={activity.id}>
+                                    <div>
+                                        <p><strong>Activity Name:</strong> {activity.activityName}</p>
+                                        <p><strong>Start Time:</strong> {activity.startTime}</p>
+                                        <p><strong>Stop Time:</strong> {activity.stopTime}</p>
+                                    </div>
+                                    <button onClick={() => handleDeleteActivityFromItinerary(activity.id)}>Delete</button>
+                                </li>
+                            ))}
                     </ul>
                 </div>
             )}
