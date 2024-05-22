@@ -146,6 +146,16 @@ export const ShowItineraries = () => {
         }
     };
 
+    const handleToggleViewPhotos = (itineraryId) => {
+        if (itineraryPhotos.length > 0) {
+            // If photos are already shown, reset itineraryPhotos to hide them
+            setItineraryPhotos([]);
+        } else {
+            // Otherwise, fetch and show photos
+            handleViewPhotos(itineraryId);
+        }
+    };
+
     return (
         <div className="show-itineraries">
             <h1>Active Itineraries</h1>
@@ -156,13 +166,13 @@ export const ShowItineraries = () => {
                         <button onClick={() => deleteItinerary(itinerary.id)}>Delete</button>
                         <button onClick={() => handleUpdateButton(itinerary)}>Update</button>
                         <button onClick={() => handleViewDetails(itinerary.id)}>View Details</button>
-                        <button onClick={() => handleViewPhotos(itinerary.id)}>View Photos</button>
+                        <button onClick={() => handleToggleViewPhotos(itinerary.id)}>View Photos</button>
                     </li>
                 ))}
             </ul>
             {selectedItinerary && (
                 <div>
-                    <h2>Add Activity to {selectedItinerary.name}</h2>
+                    <h2>Add Activity to {selectedItinerary ? selectedItinerary.name : ''}</h2>
                     <label>Select Activity:</label>
                     <select value={selectedActivity} onChange={(e) => setSelectedActivity(e.target.value)}>
                         <option value="">Select an activity</option>
@@ -177,7 +187,7 @@ export const ShowItineraries = () => {
                     <button onClick={handleUpdateActivity}>Save</button>
                 </div>
             )}
-            {itineraryPhotos.length > 0 && (
+            {itineraryPhotos.length > 0 && selectedItinerary && (
                 <div>
                     <h2>Photos for {selectedItinerary.name}</h2>
                     <div className="photos-container">
@@ -186,6 +196,9 @@ export const ShowItineraries = () => {
                         ))}
                     </div>
                 </div>
+            )}
+            {!itineraryPhotos.length && selectedItinerary && (
+                <div>No photos</div>
             )}
         </div>
     );
