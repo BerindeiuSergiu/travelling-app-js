@@ -13,6 +13,9 @@ export const ShowItineraries = () => {
     const [photoFile, setPhotoFile] = useState(null); // State to hold the selected photo file
     const [activities, setActivities] = useState([]);
     const [itineraryPhotos, setItineraryPhotos] = useState([]); // State to hold photos for the selected itinerary
+    const [isUpdateButtonClicked, setIsUpdateButtonClicked] = useState(false);
+    const [isViewPhotosButtonClicked, setIsViewPhotosButtonClicked] = useState(false);
+    const [currentItineraryId, setCurrentItineraryId] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -125,9 +128,13 @@ export const ShowItineraries = () => {
             setSelectedActivity("");
             setPhotoFile(null);
             setActivities([]);
+            setIsUpdateButtonClicked(false);
+            setCurrentItineraryId(null);
         } else {
             setSelectedItinerary(itinerary);
             await fetchActivitiesForItinerary(itinerary.id);
+            setIsUpdateButtonClicked(true);
+            setCurrentItineraryId(itinerary.id);
         }
     };
 
@@ -147,12 +154,15 @@ export const ShowItineraries = () => {
     };
 
     const handleToggleViewPhotos = (itineraryId) => {
-        if (itineraryPhotos.length > 0) {
+        if (itineraryPhotos.length > 0 && isViewPhotosButtonClicked && currentItineraryId === itineraryId) {
             // If photos are already shown, reset itineraryPhotos to hide them
             setItineraryPhotos([]);
+            setIsViewPhotosButtonClicked(false);
         } else {
             // Otherwise, fetch and show photos
             handleViewPhotos(itineraryId);
+            setIsViewPhotosButtonClicked(true);
+            setCurrentItineraryId(itineraryId);
         }
     };
 
@@ -172,7 +182,7 @@ export const ShowItineraries = () => {
             </ul>
             {selectedItinerary && (
                 <div>
-                    <h2>Add Activity to {selectedItinerary ? selectedItinerary.name : ''}</h2>
+                    <h2>Add Activity to {selectedItinerary.name}</h2>
                     <label>Select Activity:</label>
                     <select value={selectedActivity} onChange={(e) => setSelectedActivity(e.target.value)}>
                         <option value="">Select an activity</option>
@@ -187,9 +197,10 @@ export const ShowItineraries = () => {
                     <button onClick={handleUpdateActivity}>Save</button>
                 </div>
             )}
-            {itineraryPhotos.length > 0 && selectedItinerary && (
+
+            {itineraryPhotos.length > 0 && isViewPhotosButtonClicked && currentItineraryId && (
                 <div>
-                    <h2>Photos for {selectedItinerary.name}</h2>
+                    <h2>Photos</h2>
                     <div className="photos-container">
                         {itineraryPhotos.map((photo, index) => (
                             <img key={index} src={photo} alt={`Photo ${index}`} />
@@ -197,7 +208,8 @@ export const ShowItineraries = () => {
                     </div>
                 </div>
             )}
-            {!itineraryPhotos.length && selectedItinerary && (
+
+            {!itineraryPhotos.length && isViewPhotosButtonClicked && currentItineraryId && (
                 <div>No photos</div>
             )}
         </div>
