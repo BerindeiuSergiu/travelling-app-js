@@ -42,12 +42,13 @@ export const CreateItinerary = ({ currentUser }) => {
     });
     const [showDetails, setShowDetails] = useState({});
     const [currentItineraryActivities, setCurrentItineraryActivities] = useState([]);
+    const [searchQuery, setSearchQuery] = useState(''); // New state for search query
 
     useEffect(() => {
         const fetchCountries = async () => {
             try {
                 const countriesSnapshot = await getDocs(collection(db, "Countries"));
-                const countriesData = countriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const countriesData = countriesSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 setCountries(countriesData);
             } catch (error) {
                 console.error("Error fetching countries:", error);
@@ -61,7 +62,7 @@ export const CreateItinerary = ({ currentUser }) => {
         if (selectedCountry) {
             const fetchCities = async () => {
                 const citiesSnapshot = await getDocs(collection(db, `Countries/${selectedCountry}/Cities`));
-                const citiesData = citiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const citiesData = citiesSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 setCities(citiesData);
             };
             fetchCities();
@@ -82,7 +83,7 @@ export const CreateItinerary = ({ currentUser }) => {
                 });
 
                 const activitiesSnapshot = await getDocs(activitiesQuery);
-                const activitiesData = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const activitiesData = activitiesSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 setActivities(activitiesData);
             };
             fetchActivities();
@@ -100,7 +101,7 @@ export const CreateItinerary = ({ currentUser }) => {
                             const activityDocRef = doc(db, "Activities", data.activityId);
                             const activityDoc = await getDoc(activityDocRef);
                             const activityData = activityDoc.exists() ? activityDoc.data() : {};
-                            return { id: docSnapshot.id, ...data, activityName: activityData.name || "Unknown" };
+                            return {id: docSnapshot.id, ...data, activityName: activityData.name || "Unknown"};
                         })
                     );
                     setCurrentItineraryActivities(currentActivitiesData);
@@ -163,7 +164,7 @@ export const CreateItinerary = ({ currentUser }) => {
     const handleMapClick = (e) => {
         const lat = e.latLng.lat();
         const lng = e.latLng.lng();
-        setMarkerPosition({ lat, lng });
+        setMarkerPosition({lat, lng});
     };
 
     const handleFilterChange = (filter) => {
@@ -186,7 +187,7 @@ export const CreateItinerary = ({ currentUser }) => {
 
                 setShowDetails(prevDetails => ({
                     ...prevDetails,
-                    [id]: { ...prevDetails[id], address, ...activity, photos: photosData }
+                    [id]: {...prevDetails[id], address, ...activity, photos: photosData}
                 }));
             }
         } else {
@@ -253,7 +254,7 @@ export const CreateItinerary = ({ currentUser }) => {
                         const activityDocRef = doc(db, "Activities", data.activityId);
                         const activityDoc = await getDoc(activityDocRef);
                         const activityData = activityDoc.exists() ? activityDoc.data() : {};
-                        return { id: docSnapshot.id, ...data, activityName: activityData.name || "Unknown" };
+                        return {id: docSnapshot.id, ...data, activityName: activityData.name || "Unknown"};
                     })
                 );
                 setCurrentItineraryActivities(updatedActivities);
@@ -284,7 +285,7 @@ export const CreateItinerary = ({ currentUser }) => {
                         const activityDocRef = doc(db, "Activities", data.activityId);
                         const activityDoc = await getDoc(activityDocRef);
                         const activityData = activityDoc.exists() ? activityDoc.data() : {};
-                        return { id: docSnapshot.id, ...data, activityName: activityData.name || "Unknown" };
+                        return {id: docSnapshot.id, ...data, activityName: activityData.name || "Unknown"};
                     })
                 );
                 setCurrentItineraryActivities(updatedActivities);
@@ -299,8 +300,17 @@ export const CreateItinerary = ({ currentUser }) => {
         }
     };
 
+    // Filter activities based on search query and other applied filters
+    const filteredActivities = activities.filter(activity => {
+        // Check if the activity name starts with the search query
+        const startsWithSearchQuery = activity.name.toLowerCase().startsWith(searchQuery.toLowerCase());
+        // Check if the activity passes all other applied filters
+        const passesFilters = Object.entries(filters).every(([key, value]) => !value || activity[key]);
+        return startsWithSearchQuery && passesFilters;
+    });
+
     return (
-        <div className="create-itinerary" style={{ overflowY: 'scroll', maxHeight: 'calc(100vh - 100px)' }}>
+        <div className="create-itinerary" style={{overflowY: 'scroll', maxHeight: 'calc(100vh - 100px)'}}>
             <h1>Create Itinerary</h1>
             <input
                 type="text"
@@ -321,7 +331,7 @@ export const CreateItinerary = ({ currentUser }) => {
                         zoom={10}
                         onClick={handleMapClick}
                     >
-                        {markerPosition && <Marker position={markerPosition} />}
+                        {markerPosition && <Marker position={markerPosition}/>}
                     </GoogleMap>
                 </LoadScript>
             </div>
@@ -353,87 +363,109 @@ export const CreateItinerary = ({ currentUser }) => {
                     <h2>Filters</h2>
                     <label>
                         Casual:
-                        <input type="checkbox" checked={filters.casual} onChange={() => handleFilterChange('casual')} />
+                        <input type="checkbox" checked={filters.casual} onChange={() => handleFilterChange('casual')}/>
                     </label>
                     <label>
                         Cultural:
                         <input type="checkbox" checked={filters.cultural}
-                               onChange={() => handleFilterChange('cultural')} />
+                               onChange={() => handleFilterChange('cultural')}/>
                     </label>
                     <label>
                         Food:
-                        <input type="checkbox" checked={filters.food} onChange={() => handleFilterChange('food')} />
+                        <input type="checkbox" checked={filters.food} onChange={() => handleFilterChange('food')}/>
                     </label>
                     <label>
                         Free:
-                        <input type="checkbox" checked={filters.free} onChange={() => handleFilterChange('free')} />
+                        <input type="checkbox" checked={filters.free} onChange={() => handleFilterChange('free')}/>
                     </label>
                     <label>
                         Must:
-                        <input type="checkbox" checked={filters.must} onChange={() => handleFilterChange('must')} />
+                        <input type="checkbox" checked={filters.must} onChange={() => handleFilterChange('must')}/>
                     </label>
                     <label>
                         Nature:
-                        <input type="checkbox" checked={filters.nature} onChange={() => handleFilterChange('nature')} />
+                        <input type="checkbox" checked={filters.nature} onChange={() => handleFilterChange('nature')}/>
                     </label>
                     <label>
                         Night:
-                        <input type="checkbox" checked={filters.night} onChange={() => handleFilterChange('night')} />
+                        <input type="checkbox" checked={filters.night} onChange={() => handleFilterChange('night')}/>
                     </label>
                     <label>
                         Seasonal:
                         <input type="checkbox" checked={filters.seasonal}
-                               onChange={() => handleFilterChange('seasonal')} />
+                               onChange={() => handleFilterChange('seasonal')}/>
                     </label>
                 </div>
             )}
-            {selectedCity && (
-                <div className="activities">
-                    <h2>Activities</h2>
+            <div className="activities">
+                <h2>Activities</h2>
+                <input
+                    type="text"
+                    placeholder="Search activities"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {(selectedCity && filteredActivities.length > 0) && (
                     <ul>
-                        {activities.map(activity => (
-                            <li key={activity.id}>
-                                <button onClick={() => toggleDetails(activity.id)}>
-                                    {activity.name}
-                                </button>
-                                {showDetails[activity.id] && (
-                                    <div className="activity-details">
-                                        <p><strong>Description:</strong> {showDetails[activity.id].description}</p>
-                                        <p>
-                                            <strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}
-                                        </p>
-                                        <p><strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes</p>
-                                        <p>
-                                            <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
-                                        </p>
-                                        <div>
-                                            <label>Start Time:</label>
-                                            <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)}/>
-                                        </div>
-                                        <div>
-                                            <label>Stop Time:</label>
-                                            <input type="time" value={stopTime} onChange={(e) => setStopTime(e.target.value)}/>
-                                        </div>
-
-                                        {/* Render photo gallery only if photos exist */}
-                                        {showDetails[activity.id].photos && showDetails[activity.id].photos.length > 0 && (
-                                            <div className="photo-gallery-container" style={{ display: 'flex', justifyContent: 'center' }}>
-                                                <div className="photo-gallery" style={{ width: '50%', maxWidth: '300px', maxHeight: '200px', overflowY: 'auto' }}>
-                                                    {showDetails[activity.id].photos.map((photo, index) => (
-                                                        <img key={index} src={photo} alt={`Photo ${index}`} style={{ maxWidth: '100%', height: 'auto' }}/>
-                                                    ))}
-                                                </div>
+                        {filteredActivities
+                            .sort((a, b) => a.name.localeCompare(b.name)) // Sort activities alphabetically by name
+                            .map(activity => (
+                                <li key={activity.id}>
+                                    <button onClick={() => toggleDetails(activity.id)}>
+                                        {activity.name}
+                                    </button>
+                                    {showDetails[activity.id] && (
+                                        <div className="activity-details">
+                                            <p><strong>Description:</strong> {showDetails[activity.id].description}</p>
+                                            <p>
+                                                <strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}
+                                            </p>
+                                            <p><strong>Estimated
+                                                Duration:</strong> {showDetails[activity.id].time} minutes</p>
+                                            <p>
+                                                <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
+                                            </p>
+                                            <div>
+                                                <label>Start Time:</label>
+                                                <input type="time" value={startTime}
+                                                       onChange={(e) => setStartTime(e.target.value)}/>
                                             </div>
-                                        )}
+                                            <div>
+                                                <label>Stop Time:</label>
+                                                <input type="time" value={stopTime}
+                                                       onChange={(e) => setStopTime(e.target.value)}/>
+                                            </div>
 
-                                        <button onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add to Itinerary</button>
-                                    </div>
-                                )}
-                            </li>
-                        ))}
+                                            {/* Render photo gallery only if photos exist */}
+                                            {showDetails[activity.id].photos && showDetails[activity.id].photos.length > 0 && (
+                                                <div className="photo-gallery-container"
+                                                     style={{display: 'flex', justifyContent: 'center'}}>
+                                                    <div className="photo-gallery" style={{
+                                                        width: '50%',
+                                                        maxWidth: '300px',
+                                                        maxHeight: '200px',
+                                                        overflowY: 'auto'
+                                                    }}>
+                                                        {showDetails[activity.id].photos.map((photo, index) => (
+                                                            <img key={index} src={photo} alt={`Photo ${index}`}
+                                                                 style={{maxWidth: '100%', height: 'auto'}}/>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <button
+                                                onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add
+                                                to Itinerary
+                                            </button>
+                                        </div>
+                                    )}
+                                </li>
+                            ))}
                     </ul>
-                </div>
-            )}
+                )}
+            </div>
+
             {itineraryId && (
                 <div className="current-activities">
                     <h2>Current Itinerary Activities</h2>
@@ -454,7 +486,8 @@ export const CreateItinerary = ({ currentUser }) => {
                                         <p><strong>Start Time:</strong> {activity.startTime}</p>
                                         <p><strong>Stop Time:</strong> {activity.stopTime}</p>
                                     </div>
-                                    <button onClick={() => handleDeleteActivityFromItinerary(activity.id)}>Delete</button>
+                                    <button onClick={() => handleDeleteActivityFromItinerary(activity.id)}>Delete
+                                    </button>
                                 </li>
                             ))}
                     </ul>
@@ -463,3 +496,4 @@ export const CreateItinerary = ({ currentUser }) => {
         </div>
     );
 };
+
