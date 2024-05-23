@@ -1,0 +1,21 @@
+.travel-app {
+    position: relative;
+    padding: 20px;
+}
+
+.user-box {
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    padding: 10px;
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+}
