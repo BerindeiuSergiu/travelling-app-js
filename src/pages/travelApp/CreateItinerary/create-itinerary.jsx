@@ -178,9 +178,15 @@ export const CreateItinerary = ({ currentUser }) => {
             const activity = activities.find(activity => activity.id === id);
             if (activity && activity.location) {
                 const address = await getAddressFromCoordinates(activity.location.lat, activity.location.lng);
+
+                // Fetch photos for the activity from ActUsr collection
+                const photosQuery = query(collection(db, "ActUsr"), where("activityId", "==", id));
+                const photosSnapshot = await getDocs(photosQuery);
+                const photosData = photosSnapshot.docs.map(doc => doc.data().photo);
+
                 setShowDetails(prevDetails => ({
                     ...prevDetails,
-                    [id]: { ...prevDetails[id], address, ...activity }
+                    [id]: { ...prevDetails[id], address, ...activity, photos: photosData }
                 }));
             }
         } else {
@@ -235,7 +241,6 @@ export const CreateItinerary = ({ currentUser }) => {
                 itineraryId,
                 startTime,
                 stopTime,
-                photo: ""
             });
 
             console.log("Activity added to itinerary successfully.");
@@ -397,8 +402,7 @@ export const CreateItinerary = ({ currentUser }) => {
                                         <p>
                                             <strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}
                                         </p>
-                                        <p>
-                                            <strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes
+                                        <p><strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes
                                         </p>
                                         <p>
                                             <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
@@ -406,15 +410,33 @@ export const CreateItinerary = ({ currentUser }) => {
                                         <div>
                                             <label>Start Time:</label>
                                             <input type="time" value={startTime}
-                                                   onChange={(e) => setStartTime(e.target.value)} />
+                                                   onChange={(e) => setStartTime(e.target.value)}/>
                                         </div>
                                         <div>
                                             <label>Stop Time:</label>
                                             <input type="time" value={stopTime}
-                                                   onChange={(e) => setStopTime(e.target.value)} />
+                                                   onChange={(e) => setStopTime(e.target.value)}/>
                                         </div>
+
+                                        {/* Gallery of photos */}
+                                        <div className="photo-gallery-container"
+                                             style={{display: 'flex', justifyContent: 'center'}}>
+                                            <div className="photo-gallery" style={{
+                                                width: '50%',
+                                                maxWidth: '300px',
+                                                maxHeight: '200px',
+                                                overflowY: 'auto'
+                                            }}>
+                                                {showDetails[activity.id].photos && showDetails[activity.id].photos.map((photo, index) => (
+                                                    <img key={index} src={photo} alt={`Photo ${index}`}
+                                                         style={{maxWidth: '100%', height: 'auto'}}/>
+                                                ))}
+                                            </div>
+                                        </div>
+
                                         <button
-                                            onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add to Itinerary
+                                            onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add
+                                            to Itinerary
                                         </button>
                                     </div>
                                 )}
