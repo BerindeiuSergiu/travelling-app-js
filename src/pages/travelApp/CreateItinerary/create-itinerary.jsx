@@ -402,42 +402,31 @@ export const CreateItinerary = ({ currentUser }) => {
                                         <p>
                                             <strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}
                                         </p>
-                                        <p><strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes
-                                        </p>
+                                        <p><strong>Estimated Duration:</strong> {showDetails[activity.id].time} minutes</p>
                                         <p>
                                             <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
                                         </p>
                                         <div>
                                             <label>Start Time:</label>
-                                            <input type="time" value={startTime}
-                                                   onChange={(e) => setStartTime(e.target.value)}/>
+                                            <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)}/>
                                         </div>
                                         <div>
                                             <label>Stop Time:</label>
-                                            <input type="time" value={stopTime}
-                                                   onChange={(e) => setStopTime(e.target.value)}/>
+                                            <input type="time" value={stopTime} onChange={(e) => setStopTime(e.target.value)}/>
                                         </div>
 
-                                        {/* Gallery of photos */}
-                                        <div className="photo-gallery-container"
-                                             style={{display: 'flex', justifyContent: 'center'}}>
-                                            <div className="photo-gallery" style={{
-                                                width: '50%',
-                                                maxWidth: '300px',
-                                                maxHeight: '200px',
-                                                overflowY: 'auto'
-                                            }}>
-                                                {showDetails[activity.id].photos && showDetails[activity.id].photos.map((photo, index) => (
-                                                    <img key={index} src={photo} alt={`Photo ${index}`}
-                                                         style={{maxWidth: '100%', height: 'auto'}}/>
-                                                ))}
+                                        {/* Render photo gallery only if photos exist */}
+                                        {showDetails[activity.id].photos && showDetails[activity.id].photos.length > 0 && (
+                                            <div className="photo-gallery-container" style={{ display: 'flex', justifyContent: 'center' }}>
+                                                <div className="photo-gallery" style={{ width: '50%', maxWidth: '300px', maxHeight: '200px', overflowY: 'auto' }}>
+                                                    {showDetails[activity.id].photos.map((photo, index) => (
+                                                        <img key={index} src={photo} alt={`Photo ${index}`} style={{ maxWidth: '100%', height: 'auto' }}/>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
 
-                                        <button
-                                            onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add
-                                            to Itinerary
-                                        </button>
+                                        <button onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add to Itinerary</button>
                                     </div>
                                 )}
                             </li>

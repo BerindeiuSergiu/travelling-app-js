@@ -32,7 +32,7 @@ export const ShowItineraries = () => {
             const itinerariesRef = collection(db, "Itinerary");
             const q = query(itinerariesRef, where("userID", "==", currentUser.uid));
             const itinerariesSnapshot = await getDocs(q);
-            const itinerariesData = itinerariesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const itinerariesData = itinerariesSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
             setItineraries(itinerariesData);
             console.log("Fetched Itineraries:", itinerariesData);
         } catch (error) {
@@ -54,7 +54,7 @@ export const ShowItineraries = () => {
             const activitiesDataPromises = activityIds.map(async (activityId) => {
                 const activityRef = doc(db, "Activities", activityId);
                 const activityDoc = await getDoc(activityRef);
-                return { id: activityId, ...activityDoc.data() };
+                return {id: activityId, ...activityDoc.data()};
             });
 
             const activitiesData = await Promise.all(activitiesDataPromises);
@@ -173,11 +173,15 @@ export const ShowItineraries = () => {
         }
     };
 
+    const sortedItineraries = itineraries.slice().sort((a, b) => {
+        return a.name.localeCompare(b.name);
+    });
+
     return (
-        <div className="show-itineraries" style={{ overflowY: 'scroll', maxHeight: '80vh' }}>
+        <div className="show-itineraries" style={{overflowY: 'scroll', maxHeight: '80vh'}}>
             <h1>Active Itineraries</h1>
             <ul>
-                {itineraries.map((itinerary) => (
+                {sortedItineraries.map((itinerary) => (
                     <li key={itinerary.id}>
                         {itinerary.name}
                         <button onClick={() => deleteItinerary(itinerary.id)}>Delete</button>
@@ -200,24 +204,26 @@ export const ShowItineraries = () => {
                         ))}
                     </select>
                     <label>Photo:</label>
-                    <input type="file" onChange={(e) => setPhotoFile(e.target.files[0])} accept="image/*" />
+                    <input type="file" onChange={(e) => setPhotoFile(e.target.files[0])} accept="image/*"/>
                     <button onClick={handleUpdateActivity}>Save</button>
                 </div>
             )}
 
-            {itineraryPhotos.length > 0 && isViewPhotosButtonClicked && currentItineraryId && (
+            {isViewPhotosButtonClicked && currentItineraryId && (
                 <div>
-                    <h2>Photos</h2>
-                    <div className="photos-container">
-                        {itineraryPhotos.map((photo, index) => (
-                            <img key={index} src={photo} alt={`Photo ${index}`} />
-                        ))}
-                    </div>
+                    {itineraryPhotos.length > 0 ? (
+                        <>
+                            <h2>Photos</h2>
+                            <div className="photos-container">
+                                {itineraryPhotos.map((photo, index) => (
+                                    photo && <img key={index} src={photo} alt={`Photo ${index}`} />
+                                ))}
+                            </div>
+                        </>
+                    ) : (
+                        <div>No photos</div>
+                    )}
                 </div>
-            )}
-
-            {!itineraryPhotos.length && isViewPhotosButtonClicked && currentItineraryId && (
-                <div>No photos</div>
             )}
         </div>
     );
