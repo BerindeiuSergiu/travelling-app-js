@@ -174,7 +174,7 @@ export const ShowItineraries = () => {
     };
 
     return (
-        <div className="show-itineraries">
+        <div className="show-itineraries" style={{ overflowY: 'scroll', maxHeight: '80vh' }}>
             <h1>Active Itineraries</h1>
             <ul>
                 {itineraries.map((itinerary) => (
