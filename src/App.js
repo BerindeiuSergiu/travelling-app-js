@@ -15,19 +15,7 @@ function App() {
             <Router>
                 <div className="content">
                     <Routes>
-                        <Route path="/" element={
-                            <>
-                                <div className="background-slide blur"></div>
-                                <div className="background-slide blur"></div>
-                                <div className="background-slide blur"></div>
-                                <div className="background-slide blur"></div>
-                                <div className="background-slide blur"></div>
-                                <div className="background-slide blur"></div>
-                                <div className="content">
-                                    <Auth />
-                                </div>
-                            </>
-                        } />
+                        <Route path="/" element={<Auth />} />
                         <Route path="/travel-application" element={<TravelApp />} />
                         <Route path="/show-itineraries" element={<ShowItineraries />} />
                         <Route path="/create-itinerary" element={<CreateItinerary />} />

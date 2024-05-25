@@ -1,21 +1,97 @@
 .travel-app {
-    position: relative;
-    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    background-color: #80BFFF;
+    font-family: Arial, sans-serif;
+}
+
+.banner {
+    width: 100%;
+    height: 180px;
+    background: #ffffff url('/public/background/background-header.png') center center/cover no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 24px;
+}
+
+.header {
+    margin-top: 30px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.button-container button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    background-color: #d0eaff;
+    color: #333;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.button-container button:hover {
+    background-color: #b0d0e0;
 }
 
 .user-box {
-    position: absolute;
-    top: -200px;
-    right: -200px;
-    padding: 10px;
-    background-color: #f1f1f1;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
+    margin: 0 10px;
+    padding: 10px 20px;
+    background-color: #d0eaff;
+    color: #333;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
 }
 
-button {
-    margin: 10px;
-    padding: 10px 20px;
-    font-size: 16px;
+.text-box {
+    width: 80%;
+    max-width: 800px;
+    padding: 20px;
+    background-color: #d0eaff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    margin-top: 20px;
+    text-align: left;
+    color: #333;
+    font-size: 18px;
+}
+
+.text-box p {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.custom-list {
+    margin-top: 10px;
+}
+
+.custom-list div {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 10px;
+}
+
+.list-number {
+    margin-right: 10px;
+    font-weight: bold;
 }

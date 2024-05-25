@@ -48,35 +48,6 @@
   animation: slideShow 30s infinite;
 }
 
-.background-slide:nth-child(1) {
-  background-image: url('/public/background/13984.jpg');
-  animation-delay: 0s;
-}
-
-.background-slide:nth-child(2) {
-  background-image: url('/public/background/501447.jpg');
-  animation-delay: 5s;
-}
-
-.background-slide:nth-child(3) {
-  background-image: url('/public/background/cities-paris-building-city-wallpaper-preview.jpg');
-  animation-delay: 10s;
-}
-
-.background-slide:nth-child(4) {
-  background-image: url('/public/background/city-italy-rome-florence-wallpaper-preview.jpg');
-  animation-delay: 15s;
-}
-
-.background-slide:nth-child(5) {
-  background-image: url('/public/background/city-london-london-eye-big-ben-wallpaper-preview.jpg');
-  animation-delay: 20s;
-}
-
-.background-slide:nth-child(6) {
-  background-image: url('/public/background/turkey_istanbul_3840x2106.jpg');
-  animation-delay: 25s;
-}
 
 .blur {
   filter: blur(4px);

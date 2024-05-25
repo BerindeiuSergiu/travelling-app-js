@@ -1,0 +1,104 @@
+
+.auth-grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('/public/background/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.auth-top-right {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-login-page {
+    margin-top: 130px;
+    width: 350px;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.auth-login-page p {
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #333;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.auth-form-group {
+    margin-bottom: 15px;
+    width: 100%;
+    text-align: left;
+}
+
+.auth-form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #555;
+}
+
+.auth-form-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.auth-button-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.auth-button-login, .auth-button-signup {
+    width: 48%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.auth-button-login {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.auth-button-login:hover {
+    background-color: #0056b3;
+}
+
+.auth-button-signup {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.auth-button-signup:hover {
+    background-color: #5a6268;
+}
+
+.auth-error-message {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 15px;
+}

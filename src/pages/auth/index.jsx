@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import { auth, db } from "../../config/firebase-config";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import "./auth.css";
 
 export const Auth = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
 
     const signInWithEmail = async (e) => {
         e.preventDefault();
@@ -21,15 +22,15 @@ export const Auth = () => {
             const querySnapshot = await getDocs(q);
 
             if (email === 'admin@admin.com') {
-                navigate('/admin'); // Redirect admin to admin page
+                navigate('/admin');
             } else {
                 querySnapshot.forEach((doc) => {
                     const userData = doc.data();
                     console.log("User Data:", userData);
                     if (userData.rights) {
-                        navigate('/activities'); // Redirect to Activities page if user has rights
+                        navigate('/activities');
                     } else {
-                        navigate('/travel-application'); // Redirect to Travel Application page
+                        navigate('/travel-application');
                     }
                 });
             }
@@ -40,39 +41,45 @@ export const Auth = () => {
     };
 
     const goToSignUp = () => {
-        navigate('/sign-up'); // Navigate to SignUp page
+        navigate('/sign-up');
     };
 
     return (
-        <div className="login-page">
-            <p>To continue, sign in with an Email Account</p>
-            <form onSubmit={signInWithEmail}>
-                <div>
-                    <label>Email:</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
+        <div className="auth-grid-container">
+            <div className="auth-top-right">
+                <div className="auth-login-page">
+                    <p>To continue, sign in with an Email Account</p>
+                    <form className="auth-form" onSubmit={signInWithEmail}>
+                        <div className="auth-form-group">
+                            <label className="auth-form-label">Email:</label>
+                            <input
+                                type="email"
+                                className="auth-form-input"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <div className="auth-form-group">
+                            <label className="auth-form-label">Password:</label>
+                            <input
+                                type="password"
+                                className="auth-form-input"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                        {error && <p className="auth-error-message">{error}</p>}
+                        <div className="auth-button-container">
+                            <button className="auth-button-login" type="submit">
+                                Log in
+                            </button>
+                            <button className="auth-button-signup" type="button" onClick={goToSignUp}>
+                                Sign Up
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div>
-                    <label>Password:</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                {error && <p style={{color: 'red'}}>{error}</p>}
-                <div>
-                    <button className="login-with-email-and-password" type="submit">
-                        Log in
-                    </button>
-                    <button type="button" onClick={goToSignUp}>
-                        Sign Up
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     );
 };
