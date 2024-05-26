@@ -1,14 +1,81 @@
 .show-itineraries {
-    color:black;
-    padding: 20px;
-    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px; /* Adjusted padding */
+    max-width: 1200px;
     margin: 0 auto;
+    color: black;
+    margin-top: 300px; /* Adjusted margin-top */
+    margin-bottom: 100px; /* Adjusted margin-bottom */
+    max-height: calc(70vh - 50px); /* Adjusted max-height */
+}
+
+.header {
+    margin-top: 25px; /* Adjusted margin-top */
+    font-size: 28px; /* Adjusted font size */
+}
+
+.itinerary-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.itinerary-container span {
+    font-size: 22px; /* Adjusted font size */
+    font-weight: bold; /* Make the name bold */
+}
+
+.button-group {
+    display: flex;
+}
+
+.button-group button {
+    margin-left: 10px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.button-container button,
+.button-group button,
+.user-box,
+input[type="file"] {
+    margin: 12px 10px; /* Adjusted margin */
+    padding: 12px 25px; /* Adjusted padding */
+    background-color: #d0eaff;
+    color: #333;
+    border: none;
+    border-radius: 12px; /* Adjusted border radius */
+    font-size: 16px; /* Adjusted font size */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.button-container button:hover,
+.button-group button:hover,
+.user-box:hover,
+input[type="file"]:hover {
+    background-color: #b0d0e0;
+}
+
+.user-box {
+    padding: 12px 20px; /* Adjusted padding */
+    font-size: 16px; /* Adjusted font size */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
 }
 
 .photos-container {
     display: flex;
     flex-direction: column;
-    max-height: 400px;
+    max-height: 300px; /* Adjusted max-height */
     overflow-y: auto;
     border: 1px solid #ddd;
     padding: 10px;
@@ -20,8 +87,60 @@
 }
 
 .photo-item img {
-    max-width: 100%;
-    height: auto;
+    width: 100%; /* Set width to 100% to fill the container */
+    height: auto; /* Maintain aspect ratio */
+    max-height: 200px; /* Set max-height to prevent oversized images */
     display: block;
     margin: 10px 0;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    margin-top: 15px; /* Adjusted margin-top */
+}
+
+.input-container label {
+    margin-right: 8px; /* Adjusted margin */
+    font-size: 18px; /* Adjusted font size */
+}
+
+.input-container select,
+.input-container input[type="file"],
+.input-container button.save-button {
+    padding: 12px 18px; /* Adjusted padding */
+    font-size: 16px; /* Adjusted font size */
+}
+
+.input-container select {
+    flex: 1; /* Allow the select element to grow and fill the available space */
+}
+
+.input-container button.save-button {
+    margin-left: 8px; /* Adjusted margin-left */
+}
+
+/* Update styles for the active state of the "Save" button */
+.save-button-active {
+    background-color: #4caf50;
+    color: white;
+}
+
+.save-button-active:hover {
+    background-color: #45a049;
+}
+
+/* Update styles for the inactive state of the "Save" button */
+.save-button-inactive {
+    background-color: #ddd;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.show-itineraries ul {
+    margin-top: 20px; /* Add margin to the top of the list */
+}
+
+.show-itineraries ul li {
+    margin-bottom: 20px; /* Add margin to the bottom of each list item */
 }

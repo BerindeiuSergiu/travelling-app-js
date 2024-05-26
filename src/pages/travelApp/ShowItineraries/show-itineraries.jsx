@@ -3,6 +3,7 @@ import { db, getAuth } from "../../../config/firebase-config";
 import { collection, getDocs, query, where, deleteDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Import storage functions
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
 import "./show.css";
 
 export const ShowItineraries = () => {
@@ -173,29 +174,66 @@ export const ShowItineraries = () => {
         }
     };
 
+    useEffect(() => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (user) {
+            setCurrentUser(user);
+        }
+    }, []);
+
+
+    const handleCreateItinerary = () => {
+        navigate("/create-itinerary");
+    };
+
+    const handleLogOut = async () => {
+        const auth = getAuth();
+        try {
+            await signOut(auth);
+            setCurrentUser(null); // Clear the current user
+            navigate('/'); // Navigate to the home page
+        } catch (error) {
+            console.error("Error signing out:", error);
+        }
+    };
+
     const sortedItineraries = itineraries.slice().sort((a, b) => {
         return a.name.localeCompare(b.name);
     });
 
     return (
-        <div className="show-itineraries" style={{overflowY: 'scroll', maxHeight: '80vh'}}>
+        <div className="show-itineraries" style={{overflowY: 'scroll', maxHeight: '70vh'}}>
+            <div className="header"></div>
+            <div className="button-container">
+                <div className="user-box">
+                    {currentUser ? `Welcome, ${currentUser.displayName || currentUser.email}` : 'Not logged in'}
+                </div>
+                <button className="show-itineraries">Show Active Itineraries</button>
+                <button className="create-itinerary" onClick={handleCreateItinerary}>Create Itinerary</button>
+                {currentUser && <button className="log-out" onClick={handleLogOut}>Log Out</button>}
+            </div>
             <h1>Active Itineraries</h1>
             <ul>
                 {sortedItineraries.map((itinerary) => (
                     <li key={itinerary.id}>
-                        {itinerary.name}
-                        <button onClick={() => deleteItinerary(itinerary.id)}>Delete</button>
-                        <button onClick={() => handleUpdateButton(itinerary)}>Update</button>
-                        <button onClick={() => handleViewDetails(itinerary.id)}>View Details</button>
-                        <button onClick={() => handleToggleViewPhotos(itinerary.id)}>View Photos</button>
+                        <div className="itinerary-container">
+                            <span>{itinerary.name}</span>
+                            <div className="button-group">
+                                <button onClick={() => handleUpdateButton(itinerary)}>Add photos</button>
+                                <button onClick={() => handleViewDetails(itinerary.id)}>View Details</button>
+                                <button onClick={() => handleToggleViewPhotos(itinerary.id)}>View Photos</button>
+                                <button onClick={() => deleteItinerary(itinerary.id)}>Delete</button>
+                            </div>
+                        </div>
                     </li>
                 ))}
             </ul>
             {selectedItinerary && (
-                <div>
-                    <h2>Add Activity to {selectedItinerary.name}</h2>
-                    <label>Select Activity:</label>
-                    <select value={selectedActivity} onChange={(e) => setSelectedActivity(e.target.value)}>
+                <div className="input-container">
+                    <label htmlFor="activity-select">Select Activity:</label>
+                    <select id="activity-select" value={selectedActivity}
+                            onChange={(e) => setSelectedActivity(e.target.value)}>
                         <option value="">Select an activity</option>
                         {activities.map((activity) => (
                             <option key={activity.id} value={activity.id}>
@@ -203,9 +241,10 @@ export const ShowItineraries = () => {
                             </option>
                         ))}
                     </select>
-                    <label>Photo:</label>
-                    <input type="file" onChange={(e) => setPhotoFile(e.target.files[0])} accept="image/*"/>
-                    <button onClick={handleUpdateActivity}>Save</button>
+                    <label htmlFor="photo-upload">Photo:</label>
+                    <input type="file" id="photo-upload" onChange={(e) => setPhotoFile(e.target.files[0])}
+                           accept="image/*"/>
+                    <button className="save-button" onClick={handleUpdateActivity}>Save</button>
                 </div>
             )}
 
@@ -216,7 +255,7 @@ export const ShowItineraries = () => {
                             <h2>Photos</h2>
                             <div className="photos-container">
                                 {itineraryPhotos.map((photo, index) => (
-                                    photo && <img key={index} src={photo} alt={`Photo ${index}`} />
+                                    photo && <img key={index} src={photo} alt={`Photo ${index}`}/>
                                 ))}
                             </div>
                         </>

@@ -17,3 +17,23 @@
 .activity-details div {
     margin-bottom: 5px;
 }
+
+.activity-details {
+    color: black;
+    padding: 20px;
+    position: relative; /* Ensure the close button is positioned relative to the activity details container */
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    background-color: #ccc;
+    border: none;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    background-color: #aaa;
+}
