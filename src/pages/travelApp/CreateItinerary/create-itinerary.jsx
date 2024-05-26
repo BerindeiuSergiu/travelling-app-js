@@ -330,7 +330,7 @@ export const CreateItinerary = ({ currentUser }) => {
     };
 
     return (
-        <div className="create-itinerary-wrapper">
+        <div className="create-itinerary-wrapper" style={{overflowY: 'scroll', maxHeight: '70vh'}}>
             <div className="header"></div>
             <div className="button-container">
                 <div className="user-box">
