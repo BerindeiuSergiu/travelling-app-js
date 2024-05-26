@@ -35,24 +35,30 @@
 
 .button-container button {
     margin: 0 10px;
-    padding: 10px 20px;
+    padding: 12px 20px; /* Adjusted padding for consistent button size */
     background-color: #d0eaff;
     color: #333;
     border: none;
     border-radius: 10px;
-    font-size: 18px;
+    font-size: 18px; /* Adjusted font size */
     cursor: pointer;
     transition: background-color 0.3s ease;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    width: auto; /* Ensure buttons take the width of their content */
+    min-width: 150px; /* Adjust minimum width if needed */
+    text-align: center; /* Center button text */
+    height: auto; /* Set height to auto to adjust based on content */
 }
+
 
 .button-container button:hover {
     background-color: #b0d0e0;
 }
 
+
 .user-box {
     margin: 0 10px;
-    padding: 10px 20px;
+    padding: 10px 20px; /* Adjusted padding for consistent button size */
     background-color: #d0eaff;
     color: #333;
     border: none;
