@@ -62,7 +62,7 @@ return (
                     <div className="signUp-form-group">
                         <label className="signUp-form-label">Confirm Password:</label>
                         <input
-                            type="password"
+                            type="passwordt"
                             className="signUp-form-input"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
