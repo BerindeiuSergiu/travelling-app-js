@@ -3,7 +3,7 @@ import { db, getAuth } from "../../../config/firebase-config";
 import { collection, getDocs, query, where, addDoc, onSnapshot, doc, getDoc, deleteDoc } from "firebase/firestore";
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { useNavigate } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import "./create.css";
 
 const mapContainerStyle = {
@@ -18,9 +18,9 @@ const defaultCenter = {
 
 const googleMapsApiKey = "AIzaSyCGozkBKH73dBFJDdQk94Cmp9k2z0zty2Y"; // Replace with your actual API key
 
-export const CreateItinerary = ({ currentUser }) => {
+export const CreateItinerary = () => {
     const navigate = useNavigate();
-    const [currentU, setCurrentUser] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [itineraryName, setItineraryName] = useState('');
     const [selectedCountry, setSelectedCountry] = useState('');
     const [selectedCity, setSelectedCity] = useState('');
@@ -47,6 +47,20 @@ export const CreateItinerary = ({ currentUser }) => {
     const [showDetails, setShowDetails] = useState({});
     const [currentItineraryActivities, setCurrentItineraryActivities] = useState([]);
     const [searchQuery, setSearchQuery] = useState(''); // New state for search query
+
+    useEffect(() => {
+        const auth = getAuth();
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setCurrentUser(user);
+            } else {
+                setCurrentUser(null);
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
+
 
     useEffect(() => {
         const fetchCountries = async () => {
@@ -122,7 +136,6 @@ export const CreateItinerary = ({ currentUser }) => {
     const handleCreateItinerary = async () => {
         const auth = getAuth();
         const user = auth.currentUser;
-
         // Check if user is logged in
         if (!user) {
             alert("You must be logged in to create an itinerary.");
