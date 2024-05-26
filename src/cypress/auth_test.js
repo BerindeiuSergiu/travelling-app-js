@@ -1,3 +1,4 @@
+
 describe('Authentication Page', () => {
     beforeEach(() => {
         cy.visit('/auth');
@@ -8,11 +9,11 @@ describe('Authentication Page', () => {
     });
 
     it('should log in with valid credentials and redirect to activities page', () => {
-        cy.get('.auth-form-input[type="email"]').type('test@example.com');
-        cy.get('.auth-form-input[type="password"]').type('password');
+        cy.get('.auth-form-input[type="email"]').type('baba@gmail.com');
+        cy.get('.auth-form-input[type="password"]').type('babababa');
         cy.get('.auth-button-login').click();
 
-        cy.location('pathname').should('eq', '/activities');
+        cy.location('pathname').should('eq', '/travel-application');
     });
 
     it('should display error message with invalid credentials', () => {
