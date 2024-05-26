@@ -5,7 +5,6 @@
     box-sizing: border-box;
 }
 
-
 body {
     font-family: Arial, sans-serif;
     height: 100vh;
@@ -83,18 +82,14 @@ body {
 }
 
 .filters {
-    clear: both;
-}
-
-.filters h2 {
-    color: #333;
-    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .filters label {
-    display: inline-block;
-    width: 48%;
-    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
 }
 
 .filters input[type="checkbox"] {
