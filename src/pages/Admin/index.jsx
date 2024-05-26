@@ -92,63 +92,7 @@ export const Admin = () => {
         }
     };
 
-    const handleDeleteUser = async () => {
-        if (!userToDelete) {
-            alert("Please select a user to delete.");
-            return;
-        }
 
-        // Prevent deleting the currently authenticated user
-        if (currentUser?.uid === userToDelete.id) {
-            alert("You cannot delete the currently authenticated user.");
-            return;
-        }
-
-        try {
-            await reauthenticate(); // Re-authenticate the current user
-
-            // Get the user data from Firestore
-            const userRef = doc(db, "User", userToDelete.id);
-            const userDoc = await getDoc(userRef);
-
-            if (!userDoc.exists()) {
-                alert("User does not exist.");
-                return;
-            }
-
-            // Delete user from Firebase Authentication
-            const userToDeleteAuth = await getAuth().getUser(userDoc.data().uid);
-            await deleteAuthUser(userToDeleteAuth);
-
-            // Delete user from User collection
-            await deleteDoc(userRef);
-
-            // Delete itineraries associated with the user
-            const itineraryRef = collection(db, "Itinerary");
-            const itineraryQuery = query(itineraryRef, where("userID", "==", userToDelete.id));
-            const itinerarySnapshot = await getDocs(itineraryQuery);
-            await Promise.all(itinerarySnapshot.docs.map(async (doc) => {
-                await deleteDoc(doc.ref);
-            }));
-
-            // Delete activities associated with the itineraries
-            const activityRef = collection(db, "ActUsr");
-            await Promise.all(itinerarySnapshot.docs.map(async (itineraryDoc) => {
-                const activityQuery = query(activityRef, where("ItID", "==", itineraryDoc.id));
-                const activitySnapshot = await getDocs(activityQuery);
-                await Promise.all(activitySnapshot.docs.map(async (doc) => {
-                    await deleteDoc(doc.ref);
-                }));
-            }));
-
-            // Update state after deletion
-            setUsersWithRights(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
-            setUsersWithoutRights(prevUsers => prevUsers.filter(user => user.id !== userToDelete.id));
-            setUserToDelete(null); // Clear selected user after deletion
-        } catch (error) {
-            console.error("Error deleting user:", error);
-        }
-    };
 
     if (loading) {
         return <p>Loading...</p>;
@@ -188,21 +132,6 @@ export const Admin = () => {
                 Revoke Rights
             </button>
 
-            <h2>Delete user:</h2>
-            <select value={userToDelete?.id || ""} onChange={(event) => {
-                const selectedUser = usersWithRights.concat(usersWithoutRights).find(user => user.id === event.target.value);
-                setUserToDelete(selectedUser);
-            }}>
-                <option value="">Select a user</option>
-                {usersWithRights.concat(usersWithoutRights).map((user) => (
-                    <option key={user.id} value={user.id}>
-                        {user.email}
-                    </option>
-                ))}
-            </select>
-            <button onClick={handleDeleteUser} disabled={!userToDelete}>
-                Delete User
-            </button>
         </div>
     );
 };

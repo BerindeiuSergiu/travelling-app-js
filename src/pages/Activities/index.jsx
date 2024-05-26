@@ -287,7 +287,7 @@ export const Activities = () => {
     };
 
     return (
-        <div className="activities-page" style={{ height: '100vh', overflow: 'auto' }}>
+        <div className="activities-page" style={{overflowY: 'scroll', maxHeight: '70vh'}}>
             <h1>Add New Country</h1>
             <form onSubmit={handleAddCountry}>
                 <label>
