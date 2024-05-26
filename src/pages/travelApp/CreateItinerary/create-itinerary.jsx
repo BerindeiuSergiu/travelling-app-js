@@ -504,6 +504,21 @@ export const CreateItinerary = () => {
                         </div>
                     )}
 
+
+                </div>
+                <div className="right-section">
+                    <div className="map-container">
+                        <LoadScript googleMapsApiKey={googleMapsApiKey}>
+                            <GoogleMap
+                                mapContainerStyle={mapContainerStyle}
+                                center={defaultCenter}
+                                zoom={10}
+                                onClick={handleMapClick}
+                            >
+                                {markerPosition && <Marker position={markerPosition}/>}
+                            </GoogleMap>
+                        </LoadScript>
+                    </div>
                     {itineraryId && (
                         <div className="current-activities">
                             <h2>Current Itinerary Activities</h2>
@@ -530,20 +545,6 @@ export const CreateItinerary = () => {
                             </ul>
                         </div>
                     )}
-                </div>
-                <div className="right-section">
-                    <div className="map-container">
-                        <LoadScript googleMapsApiKey={googleMapsApiKey}>
-                            <GoogleMap
-                                mapContainerStyle={mapContainerStyle}
-                                center={defaultCenter}
-                                zoom={10}
-                                onClick={handleMapClick}
-                            >
-                                {markerPosition && <Marker position={markerPosition}/>}
-                            </GoogleMap>
-                        </LoadScript>
-                    </div>
                 </div>
             </div>
         </div>

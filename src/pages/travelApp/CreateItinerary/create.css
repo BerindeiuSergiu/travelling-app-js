@@ -134,3 +134,50 @@ body {
 .activity-details {
     margin-top: 10px; /* Added margin-top to separate details from activity list */
 }
+
+.activities button {
+    width: 50%;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.8); /* White background with 80% opacity */
+    color: rgba(92, 107, 192, 0.8); /* Text color with 80% opacity */
+    border: 2px solid rgba(92, 107, 192, 0.8); /* Border color with 80% opacity */
+    border-radius: 20px; /* Increased border radius for curved corners */
+    cursor: pointer;
+}
+
+.current-activities button {
+    width: auto; /* Set width to auto to fit content */
+    padding: 5px 10px; /* Adjust padding for better appearance */
+    background-color: #d32f2f; /* Red background color */
+    color: #fff; /* White text color */
+    border: none; /* Remove border */
+    border-radius: 4px; /* Add border-radius for rounded corners */
+    cursor: pointer; /* Add cursor pointer on hover */
+    transition: background-color 0.3s; /* Smooth transition for background color */
+}
+
+.activities button:hover {
+    background-color: rgba(92, 107, 192, 0.8); /* Hover background color */
+    color: rgba(255, 255, 255, 0.8); /* Hover text color */
+}
+
+.create-itinerary {
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Space items evenly along the main axis */
+}
+
+.left-section {
+    width: 45%; /* Reduce width to accommodate the right section */
+}
+
+.right-section {
+    width: 45%; /* Set the width of the right section */
+    display: flex; /* Use flexbox for layout */
+    flex-direction: column; /* Stack items vertically */
+}
+
+.current-activities {
+    max-height: calc(100vh - 550px); /* Adjusted max-height to fit remaining space */
+    overflow-y: auto; /* Added overflow-y to enable vertical scrolling */
+}
+
