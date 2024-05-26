@@ -5,7 +5,7 @@
     box-sizing: border-box;
 }
 
-/* Global Styles */
+
 body {
     font-family: Arial, sans-serif;
     height: 100vh;
@@ -23,6 +23,7 @@ body {
 }
 
 .create-itinerary {
+    color:black;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
