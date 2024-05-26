@@ -310,189 +310,187 @@ export const CreateItinerary = ({ currentUser }) => {
     });
 
     return (
-        <div className="create-itinerary" style={{overflowY: 'scroll', maxHeight: 'calc(100vh - 100px)'}}>
+        <div className="create-itinerary">
             <h1>Create Itinerary</h1>
-            <input
-                type="text"
-                placeholder="Itinerary Name"
-                value={itineraryName}
-                onChange={(e) => setItineraryName(e.target.value)}
-            />
-            <input
-                type="date"
-                value={itineraryDate}
-                onChange={(e) => setItineraryDate(e.target.value)}
-            />
-            <div className="map-container">
-                <LoadScript googleMapsApiKey={googleMapsApiKey}>
-                    <GoogleMap
-                        mapContainerStyle={mapContainerStyle}
-                        center={defaultCenter}
-                        zoom={10}
-                        onClick={handleMapClick}
-                    >
-                        {markerPosition && <Marker position={markerPosition}/>}
-                    </GoogleMap>
-                </LoadScript>
-            </div>
-            <button onClick={handleCreateItinerary}>Create Itinerary</button>
-            {createButtonClicked && (
-                <div className="location-select">
-                    <label>
-                        Country:
-                        <select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)}>
-                            <option value="">Select a country</option>
-                            {countries.map(country => (
-                                <option key={country.id} value={country.id}>{country.name}</option>
-                            ))}
-                        </select>
-                    </label>
-                    <label>
-                        City:
-                        <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
-                            <option value="">Select a city</option>
-                            {cities.map(city => (
-                                <option key={city.id} value={city.id}>{city.name}</option>
-                            ))}
-                        </select>
-                    </label>
-                </div>
-            )}
-            {(selectedCountry && selectedCity) && (
-                <div className="filters">
-                    <h2>Filters</h2>
-                    <label>
-                        Casual:
-                        <input type="checkbox" checked={filters.casual} onChange={() => handleFilterChange('casual')}/>
-                    </label>
-                    <label>
-                        Cultural:
-                        <input type="checkbox" checked={filters.cultural}
-                               onChange={() => handleFilterChange('cultural')}/>
-                    </label>
-                    <label>
-                        Food:
-                        <input type="checkbox" checked={filters.food} onChange={() => handleFilterChange('food')}/>
-                    </label>
-                    <label>
-                        Free:
-                        <input type="checkbox" checked={filters.free} onChange={() => handleFilterChange('free')}/>
-                    </label>
-                    <label>
-                        Must:
-                        <input type="checkbox" checked={filters.must} onChange={() => handleFilterChange('must')}/>
-                    </label>
-                    <label>
-                        Nature:
-                        <input type="checkbox" checked={filters.nature} onChange={() => handleFilterChange('nature')}/>
-                    </label>
-                    <label>
-                        Night:
-                        <input type="checkbox" checked={filters.night} onChange={() => handleFilterChange('night')}/>
-                    </label>
-                    <label>
-                        Seasonal:
-                        <input type="checkbox" checked={filters.seasonal}
-                               onChange={() => handleFilterChange('seasonal')}/>
-                    </label>
-                </div>
-            )}
-            <div className="activities">
-                <h2>Activities</h2>
+            <div className="left-section">
                 <input
                     type="text"
-                    placeholder="Search activities"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Itinerary Name"
+                    value={itineraryName}
+                    onChange={(e) => setItineraryName(e.target.value)}
                 />
-                {(selectedCity && filteredActivities.length > 0) && (
-                    <ul>
-                        {filteredActivities
-                            .sort((a, b) => a.name.localeCompare(b.name)) // Sort activities alphabetically by name
-                            .map(activity => (
-                                <li key={activity.id}>
-                                    <button onClick={() => toggleDetails(activity.id)}>
-                                        {activity.name}
-                                    </button>
-                                    {showDetails[activity.id] && (
-                                        <div className="activity-details">
-                                            <p><strong>Description:</strong> {showDetails[activity.id].description}</p>
-                                            <p>
-                                                <strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}
-                                            </p>
-                                            <p><strong>Estimated
-                                                Duration:</strong> {showDetails[activity.id].time} minutes</p>
-                                            <p>
-                                                <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
-                                            </p>
-                                            <div>
-                                                <label>Start Time:</label>
-                                                <input type="time" value={startTime}
-                                                       onChange={(e) => setStartTime(e.target.value)}/>
-                                            </div>
-                                            <div>
-                                                <label>Stop Time:</label>
-                                                <input type="time" value={stopTime}
-                                                       onChange={(e) => setStopTime(e.target.value)}/>
-                                            </div>
-
-                                            {/* Render photo gallery only if photos exist */}
-                                            {showDetails[activity.id].photos && showDetails[activity.id].photos.length > 0 && (
-                                                <div className="photo-gallery-container"
-                                                     style={{display: 'flex', justifyContent: 'center'}}>
-                                                    <div className="photo-gallery" style={{
-                                                        width: '50%',
-                                                        maxWidth: '300px',
-                                                        maxHeight: '200px',
-                                                        overflowY: 'auto'
-                                                    }}>
-                                                        {showDetails[activity.id].photos.map((photo, index) => (
-                                                            <img key={index} src={photo} alt={`Photo ${index}`}
-                                                                 style={{maxWidth: '100%', height: 'auto'}}/>
-                                                        ))}
-                                                    </div>
+                <input
+                    type="date"
+                    value={itineraryDate}
+                    onChange={(e) => setItineraryDate(e.target.value)}
+                />
+                <button onClick={handleCreateItinerary}>Create Itinerary</button>
+                {createButtonClicked && (
+                    <div className="location-select">
+                        <label>
+                            Country:
+                            <select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)}>
+                                <option value="">Select a country</option>
+                                {countries.map(country => (
+                                    <option key={country.id} value={country.id}>{country.name}</option>
+                                ))}
+                            </select>
+                        </label>
+                        <label>
+                            City:
+                            <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
+                                <option value="">Select a city</option>
+                                {cities.map(city => (
+                                    <option key={city.id} value={city.id}>{city.name}</option>
+                                ))}
+                            </select>
+                        </label>
+                    </div>
+                )}
+                {(selectedCountry && selectedCity) && (
+                    <div className="filters">
+                        <h2>Filters</h2>
+                        <label>
+                            Casual:
+                            <input type="checkbox" checked={filters.casual}
+                                   onChange={() => handleFilterChange('casual')}/>
+                        </label>
+                        <label>
+                            Cultural:
+                            <input type="checkbox" checked={filters.cultural}
+                                   onChange={() => handleFilterChange('cultural')}/>
+                        </label>
+                        <label>
+                            Food:
+                            <input type="checkbox" checked={filters.food} onChange={() => handleFilterChange('food')}/>
+                        </label>
+                        <label>
+                            Free:
+                            <input type="checkbox" checked={filters.free} onChange={() => handleFilterChange('free')}/>
+                        </label>
+                        <label>
+                            Must:
+                            <input type="checkbox" checked={filters.must} onChange={() => handleFilterChange('must')}/>
+                        </label>
+                        <label>
+                            Nature:
+                            <input type="checkbox" checked={filters.nature}
+                                   onChange={() => handleFilterChange('nature')}/>
+                        </label>
+                        <label>
+                            Night:
+                            <input type="checkbox" checked={filters.night}
+                                   onChange={() => handleFilterChange('night')}/>
+                        </label>
+                        <label>
+                            Seasonal:
+                            <input type="checkbox" checked={filters.seasonal}
+                                   onChange={() => handleFilterChange('seasonal')}/>
+                        </label>
+                    </div>
+                )}
+                <div className="activities">
+                    <h2>Activities</h2>
+                    <input
+                        type="text"
+                        placeholder="Search activities"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {selectedCity && filteredActivities.length > 0 && (
+                        <ul>
+                            {filteredActivities
+                                .sort((a, b) => a.name.localeCompare(b.name)) // Sort activities alphabetically by name
+                                .map(activity => (
+                                    <li key={activity.id}>
+                                        <button onClick={() => toggleDetails(activity.id)}>
+                                            {activity.name}
+                                        </button>
+                                        {showDetails[activity.id] && (
+                                            <div className="activity-details">
+                                                <p><strong>Description:</strong> {showDetails[activity.id].description}
+                                                </p>
+                                                <p>
+                                                    <strong>Location:</strong> {showDetails[activity.id].address || "Fetching address..."}
+                                                </p>
+                                                <p><strong>Estimated
+                                                    Duration:</strong> {showDetails[activity.id].time} minutes</p>
+                                                <p>
+                                                    <strong>Filters:</strong> {Object.keys(filters).filter(filter => showDetails[activity.id][filter]).join(', ')}
+                                                </p>
+                                                <div>
+                                                    <label>Start Time:</label>
+                                                    <input type="time" value={startTime}
+                                                           onChange={(e) => setStartTime(e.target.value)}/>
                                                 </div>
-                                            )}
+                                                <div>
+                                                    <label>Stop Time:</label>
+                                                    <input type="time" value={stopTime}
+                                                           onChange={(e) => setStopTime(e.target.value)}/>
+                                                </div>
 
-                                            <button classname = "button-test"
-                                                onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add
-                                                to Itinerary
-                                            </button>
+                                                {showDetails[activity.id].photos && showDetails[activity.id].photos.length > 0 && (
+                                                    <div className="photo-gallery-container">
+                                                        <div className="photo-gallery">
+                                                            {showDetails[activity.id].photos.map((photo, index) => (
+                                                                <img key={index} src={photo} alt={`Photo ${index}`}/>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <button className="button-test"
+                                                        onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>
+                                                    Add to Itinerary
+                                                </button>
+                                            </div>
+                                        )}
+                                    </li>
+                                ))}
+                        </ul>
+                    )}
+                </div>
+
+                {itineraryId && (
+                    <div className="current-activities">
+                        <h2>Current Itinerary Activities</h2>
+                        <ul>
+                            {currentItineraryActivities
+                                .filter(activity => activity.itineraryId === itineraryId)
+                                .sort((a, b) => {
+                                    const startTimeA = new Date(`1970-01-01T${a.startTime}`);
+                                    const startTimeB = new Date(`1970-01-01T${b.startTime}`);
+                                    return startTimeA - startTimeB;
+                                })
+                                .map(activity => (
+                                    <li key={activity.id}>
+                                        <div>
+                                            <p><strong>Activity Name:</strong> {activity.activityName}</p>
+                                            <p><strong>Start Time:</strong> {activity.startTime}</p>
+                                            <p><strong>Stop Time:</strong> {activity.stopTime}</p>
                                         </div>
-                                    )}
-                                </li>
-                            ))}
-                    </ul>
+                                        <button onClick={() => handleDeleteActivityFromItinerary(activity.id)}>Delete
+                                        </button>
+                                    </li>
+                                ))}
+                        </ul>
+                    </div>
                 )}
             </div>
-
-            {itineraryId && (
-                <div className="current-activities">
-                    <h2>Current Itinerary Activities</h2>
-                    <ul>
-                        {currentItineraryActivities
-                            .filter(activity => activity.itineraryId === itineraryId)
-                            .sort((a, b) => {
-                                // Convert start times to Date objects for comparison
-                                const startTimeA = new Date(`1970-01-01T${a.startTime}`);
-                                const startTimeB = new Date(`1970-01-01T${b.startTime}`);
-                                // Compare start times
-                                return startTimeA - startTimeB;
-                            })
-                            .map(activity => (
-                                <li key={activity.id}>
-                                    <div>
-                                        <p><strong>Activity Name:</strong> {activity.activityName}</p>
-                                        <p><strong>Start Time:</strong> {activity.startTime}</p>
-                                        <p><strong>Stop Time:</strong> {activity.stopTime}</p>
-                                    </div>
-                                    <button onClick={() => handleDeleteActivityFromItinerary(activity.id)}>Delete
-                                    </button>
-                                </li>
-                            ))}
-                    </ul>
+            <div className="right-section">
+                <div className="map-container">
+                    <LoadScript googleMapsApiKey={googleMapsApiKey}>
+                        <GoogleMap
+                            mapContainerStyle={mapContainerStyle}
+                            center={defaultCenter}
+                            zoom={10}
+                            onClick={handleMapClick}
+                        >
+                            {markerPosition && <Marker position={markerPosition}/>}
+                        </GoogleMap>
+                    </LoadScript>
                 </div>
-            )}
+            </div>
         </div>
     );
 };

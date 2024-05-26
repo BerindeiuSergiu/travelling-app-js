@@ -1,3 +1,79 @@
-.create-itinerary{
-    color:black;
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: url("/public/background/create-itinerary.png") no-repeat center center fixed;
+    background-size: cover;
+    overflow: hidden;
 }
+
+html, #root {
+    height: 100%;
+}
+
+.create-itinerary {
+    display: flex;
+    justify-content: space-between;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.left-section {
+    flex: 1;
+    max-width: 40%;
+    overflow-y: auto;
+    margin-right: 20px;
+}
+
+.right-section {
+    flex: 1;
+    max-width: 55%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-container {
+    width: 100%;
+    height: 80vh;
+}
+
+button {
+    display: block;
+    margin: 10px 0;
+}
+
+.location-select, .filters, .activities, .current-activities {
+    margin: 20px 0;
+}
+
+.activity-details {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.photo-gallery-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.photo-gallery {
+    width: 50%;
+    max-width: 300px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.photo-gallery img {
+    max-width: 100%;
+    height: auto;
+}
+
+.button-test {
+    margin-top: 10px;
+}
+
