@@ -35,37 +35,49 @@ export const SignUp = () => {
         }
     };
 
-    return (
-        <div className="signup-page">
-            <h2>Create a New Account</h2>
-            <form onSubmit={handleSignUp}>
-                <div>
-                    <label>Email:</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                </div>
-                <div>
-                    <label>Password:</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                <div>
-                    <label>Confirm Password:</label>
-                    <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
-                </div>
-                {error && <p style={{color: 'red'}}>{error}</p>}
-                <button type="submit">Sign Up</button>
-            </form>
+return (
+    <div className="signUp-grid-container">
+        <div className="signUp-top-right">
+            <div className="signUp-page">
+                <p>Create a new account</p>
+                <form className="signUp-form" onSubmit={handleSignUp}>
+                    <div className="signUp-form-group">
+                        <label className="signUp-form-label">Email:</label>
+                        <input
+                            type="email"
+                            className="signUp-form-input"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                    </div>
+                    <div className="signUp-form-group">
+                        <label className="signUp-form-label">Password:</label>
+                        <input
+                            type="password"
+                            className="signUp-form-input"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+                    <div className="signUp-form-group">
+                        <label className="signUp-form-label">Confirm Password:</label>
+                        <input
+                            type="password"
+                            className="signUp-form-input"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                    </div>
+                    {error && <p className="signUp-error-message">{error}</p>}
+                    <div className="signUp-button-container">
+                        <button className="signUp-button-signup" type="submit">
+                            Sign Up
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    );
-};
+    </div>
+);
+}
+;

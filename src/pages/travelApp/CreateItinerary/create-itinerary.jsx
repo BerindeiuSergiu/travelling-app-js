@@ -454,7 +454,7 @@ export const CreateItinerary = ({ currentUser }) => {
                                                 </div>
                                             )}
 
-                                            <button
+                                            <button classname = "button-test"
                                                 onClick={() => handleAddActivityToItinerary(activity.id, itineraryId)}>Add
                                                 to Itinerary
                                             </button>
