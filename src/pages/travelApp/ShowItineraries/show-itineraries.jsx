@@ -182,6 +182,13 @@ export const ShowItineraries = () => {
         }
     }, []);
 
+    useEffect(() => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (user) {
+            setCurrentUser(user);
+        }
+    }, []);
 
     const handleCreateItinerary = () => {
         navigate("/create-itinerary");
