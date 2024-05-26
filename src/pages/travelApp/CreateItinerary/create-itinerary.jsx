@@ -313,18 +313,20 @@ export const CreateItinerary = ({ currentUser }) => {
         <div className="create-itinerary">
             <h1>Create Itinerary</h1>
             <div className="left-section">
-                <input
-                    type="text"
-                    placeholder="Itinerary Name"
-                    value={itineraryName}
-                    onChange={(e) => setItineraryName(e.target.value)}
-                />
-                <input
-                    type="date"
-                    value={itineraryDate}
-                    onChange={(e) => setItineraryDate(e.target.value)}
-                />
-                <button onClick={handleCreateItinerary}>Create Itinerary</button>
+                <div className="name-date-container">
+                    <input
+                        type="text"
+                        placeholder="Itinerary Name"
+                        value={itineraryName}
+                        onChange={(e) => setItineraryName(e.target.value)}
+                    />
+                    <input
+                        type="date"
+                        value={itineraryDate}
+                        onChange={(e) => setItineraryDate(e.target.value)}
+                    />
+                    <button onClick={handleCreateItinerary}>Create Itinerary</button>
+                </div>
                 {createButtonClicked && (
                     <div className="location-select">
                         <label>

@@ -1,79 +1,110 @@
 body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background: url("/public/background/create-itinerary.png") no-repeat center center fixed;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    background: #f4f4f4 url("/public/background/create-itinerary.png") no-repeat center center scroll;
     background-size: cover;
-    overflow: hidden;
+    overflow: auto;
 }
 
-html, #root {
-    height: 100%;
-}
-
-.create-itinerary {
-    display: flex;
-    justify-content: space-between;
-    height: 100%;
+.create-itinerary,
+.activities,
+.current-activities {
+    width: 80%;
+    margin: 0 auto;
+    background-color: #fff;
     padding: 20px;
-    box-sizing: border-box;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+}
+
+.create-itinerary h1,
+.activities h2,
+.current-activities h2 {
+    color: #333;
+    text-align: center;
 }
 
 .left-section {
-    flex: 1;
-    max-width: 40%;
-    overflow-y: auto;
-    margin-right: 20px;
+    float: left;
+    width: 45%;
 }
 
 .right-section {
-    flex: 1;
-    max-width: 55%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    float: right;
+    width: 50%;
 }
 
+.name-date-container,
+.location-select,
+.filters,
+.activity-details,
+.photo-gallery-container,
 .map-container {
+    margin-bottom: 20px;
+}
+
+.name-date-container input[type="text"],
+.name-date-container input[type="date"],
+.location-select select,
+.filters select,
+.activity-details input[type="time"] {
     width: 100%;
-    height: 80vh;
-}
-
-button {
-    display: block;
-    margin: 10px 0;
-}
-
-.location-select, .filters, .activities, .current-activities {
-    margin: 20px 0;
-}
-
-.activity-details {
-    background-color: rgba(255, 255, 255, 0.9);
     padding: 10px;
-    border-radius: 5px;
-    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
-.photo-gallery-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
+.name-date-container button,
+.activity-details button {
+    width: 100%;
+    padding: 10px;
+    background-color: #5C6BC0;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.location-select label,
+.filters label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.filters {
+    clear: both;
+}
+
+.filters h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.filters label {
+    display: inline-block;
+    width: 48%;
+    margin-bottom: 10px;
+}
+
+.filters input[type="checkbox"] {
+    margin-right: 5px;
 }
 
 .photo-gallery {
-    width: 50%;
-    max-width: 300px;
-    max-height: 200px;
-    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
 .photo-gallery img {
-    max-width: 100%;
-    height: auto;
+    width: calc(100% / 3 - 10px);
+    margin-bottom: 10px;
 }
 
-.button-test {
-    margin-top: 10px;
+.map-container {
+    height: 400px;
+    width: 100%;
+    margin-left: 5%;
 }
 
