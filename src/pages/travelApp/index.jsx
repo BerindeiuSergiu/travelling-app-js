@@ -46,14 +46,6 @@ export const TravelApp = () => {
                 <button className="create-itinerary" onClick={handleCreateItinerary}>Create Itinerary</button>
                 {currentUser && <button className="log-out" onClick={handleLogOut}>Log Out</button>}
             </div>
-            <div className="text-box">
-                <p>Create a new itinerary:</p>
-                <div className="custom-list">
-                    <div><span className="list-number">1.</span> Select the best activities curated by our team</div>
-                    <div><span className="list-number">2.</span> Filter them by your own preferences</div>
-                    <div><span className="list-number">3.</span> See the experience of other users</div>
-                </div>
-            </div>
         </div>
     );
 };
